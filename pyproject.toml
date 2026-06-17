@@ -1,0 +1,14 @@
+[project]
+name = "custom_themes"
+authors = [{ name = "Sayeesh", email = "admin@example.com" }]
+description = "Customize Frappe icons, fonts and theme colors"
+requires-python = ">=3.14"
+readme = "README.md"
+dynamic = ["version"]
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.bench]
+frappe-version = ">=16.0.0"

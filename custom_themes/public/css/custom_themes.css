@@ -1,0 +1,733 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Custom Themes — Frappe v16 theme engine (CSS layer)
+
+   SAFE-ONLY: This file changes colors, fonts, and icons.
+   It does NOT alter layout, z-index, position, padding, margins,
+   border-radius, box-shadow, transforms, or overflow — so Frappe's
+   standard UI is never broken.
+   ═══════════════════════════════════════════════════════════════════ */
+
+body.custom-themes-active {
+	--ct-speed: 200ms;
+}
+
+/* ── 1. Theme Colors (ct-colors) ─────────────────────────────────── */
+
+body.custom-themes-active.ct-colors {
+	--primary: var(--ct-primary, #7c3aed) !important;
+	--primary-color: var(--ct-primary, #7c3aed) !important;
+	--brand-color: var(--ct-primary, #7c3aed) !important;
+	--btn-primary: var(--ct-primary, #7c3aed) !important;
+	--border-primary: var(--ct-primary, #7c3aed) !important;
+	--dt-primary-color: var(--ct-primary, #7c3aed) !important;
+
+	--link-color: var(--ct-link-color, var(--ct-primary, #7c3aed)) !important;
+	--timeline-badge-color: var(--ct-primary, #7c3aed) !important;
+	--progress-bar-bg: var(--ct-primary, #7c3aed) !important;
+	--date-active-bg: var(--ct-primary, #7c3aed) !important;
+	--date-active-text: #ffffff !important;
+	--checkbox-color: var(--ct-primary, #7c3aed) !important;
+	--checkbox-gradient: linear-gradient(
+		180deg,
+		var(--ct-primary, #7c3aed) -124.51%,
+		var(--ct-primary, #7c3aed) 100%
+	) !important;
+
+	/* Subtle hover backgrounds tied to secondary */
+	--subtle-accent: color-mix(in srgb, var(--ct-secondary, #06b6d4) 15%, white) !important;
+	--subtle-fg: color-mix(in srgb, var(--ct-secondary, #06b6d4) 10%, white) !important;
+	--fg-hover-color: color-mix(in srgb, var(--ct-secondary, #06b6d4) 8%, white) !important;
+
+	/* Icons */
+	--icon-stroke: var(--ct-icon-color, #7c3aed) !important;
+}
+
+/*
+ * Icon coloring — only when Theme Colors are enabled.
+ *
+ * Frappe v16 has TWO icon families:
+ *   - Timeless (.icon, no .es-icon) → stroke-based SVGs
+ *   - Espresso (.es-icon)           → fill-based SVGs (both es-line and es-solid)
+ *
+ * IMPORTANT: Espresso "es-line" icons are FILL-based despite the name.
+ * Never set fill:none on them — that makes them invisible.
+ */
+
+/* Timeless icons — stroke based */
+body.custom-themes-active.ct-colors svg.icon:not(.es-icon),
+body.custom-themes-active.ct-colors svg.icon:not(.es-icon) use {
+	stroke: var(--ct-icon-color, #7c3aed);
+}
+
+/* Espresso icons (both es-line and es-solid) — fill based */
+body.custom-themes-active.ct-colors .es-icon,
+body.custom-themes-active.ct-colors .es-icon use {
+	fill: var(--ct-icon-color, #7c3aed);
+}
+
+/* Espresso line icons also need stroke:none to avoid doubling on some browsers */
+body.custom-themes-active.ct-colors .es-icon.es-line,
+body.custom-themes-active.ct-colors .es-icon.es-line use {
+	fill: var(--ct-icon-color, #7c3aed);
+	stroke: none;
+}
+
+body.custom-themes-active.ct-colors .desktop-icon .icon,
+body.custom-themes-active.ct-colors .desktop-icon .es-icon {
+	--icon-stroke: var(--ct-icon-color, #7c3aed);
+}
+
+body.custom-themes-active.ct-colors a:not(.btn):not(.dropdown-item):not(.nav-link),
+body.custom-themes-active.ct-colors .sidebar-item.active .sidebar-item-label {
+	color: var(--ct-link-color, var(--ct-primary, #7c3aed));
+}
+
+body.custom-themes-active.ct-colors .desktop-icon.selected {
+	background: color-mix(in srgb, var(--ct-primary, #7c3aed) 16%, transparent) !important;
+	border-color: var(--ct-primary, #7c3aed) !important;
+}
+
+body.custom-themes-active.ct-colors .sidebar-item-container.is-selected .sidebar-item,
+body.custom-themes-active.ct-colors .standard-sidebar-item.selected {
+	background: var(
+		--ct-sidebar-active-bg,
+		color-mix(in srgb, var(--ct-primary, #7c3aed) 14%, transparent)
+	) !important;
+}
+
+/* Focus ring color on interactive elements */
+body.custom-themes-active.ct-colors .form-control:focus,
+body.custom-themes-active.ct-colors .btn:focus-visible,
+body.custom-themes-active.ct-colors select:focus,
+body.custom-themes-active.ct-colors textarea:focus {
+	border-color: var(--ct-primary, #7c3aed) !important;
+}
+
+/* Loading progress bar color */
+body.custom-themes-active.ct-colors #nprogress .bar {
+	background: var(--ct-primary, #7c3aed) !important;
+}
+body.custom-themes-active.ct-colors #nprogress .peg {
+	box-shadow: 0 0 10px var(--ct-primary, #7c3aed), 0 0 5px var(--ct-primary, #7c3aed) !important;
+}
+
+/* ── 2. Typography (ct-typo) ─────────────────────────────────────── */
+
+body.custom-themes-active.ct-typo {
+	--font-stack: var(--ct-font-family, inherit) !important;
+	--text-color: var(--ct-text-color, inherit) !important;
+	--dt-text-color: var(--ct-text-color, inherit) !important;
+	font-family: var(--ct-font-family, inherit) !important;
+	font-size: var(--ct-font-size-base, 14px) !important;
+	color: var(--ct-text-color, inherit) !important;
+}
+
+body.custom-themes-active.ct-typo input,
+body.custom-themes-active.ct-typo select,
+body.custom-themes-active.ct-typo textarea,
+body.custom-themes-active.ct-typo .form-control,
+body.custom-themes-active.ct-typo .btn {
+	font-family: var(--ct-font-family, inherit) !important;
+}
+
+body.custom-themes-active.ct-typo h1,
+body.custom-themes-active.ct-typo h2,
+body.custom-themes-active.ct-typo h3,
+body.custom-themes-active.ct-typo h4,
+body.custom-themes-active.ct-typo h5,
+body.custom-themes-active.ct-typo h6,
+body.custom-themes-active.ct-typo .page-title,
+body.custom-themes-active.ct-typo .sidebar-item-label,
+body.custom-themes-active.ct-typo .desktop-icon-title {
+	font-family: var(--ct-heading-font, var(--ct-font-family, inherit)) !important;
+}
+
+body.custom-themes-active.ct-typo.ct-has-heading-color h1,
+body.custom-themes-active.ct-typo.ct-has-heading-color h2,
+body.custom-themes-active.ct-typo.ct-has-heading-color h3,
+body.custom-themes-active.ct-typo.ct-has-heading-color h4,
+body.custom-themes-active.ct-typo.ct-has-heading-color h5,
+body.custom-themes-active.ct-typo.ct-has-heading-color h6,
+body.custom-themes-active.ct-typo.ct-has-heading-color .page-title {
+	color: var(--ct-heading-color, inherit) !important;
+}
+
+body.custom-themes-active.ct-typo.ct-has-heading-color {
+	--heading-color: var(--ct-heading-color, inherit) !important;
+}
+
+body.custom-themes-active.ct-typo.ct-has-text-muted .text-muted,
+body.custom-themes-active.ct-typo.ct-has-text-muted .text-light,
+body.custom-themes-active.ct-typo.ct-has-text-muted .text-extra-muted {
+	color: var(--ct-text-muted-color, inherit) !important;
+}
+
+body.custom-themes-active.ct-typo a:not(.btn) {
+	color: var(--ct-link-color, var(--ct-primary, inherit));
+}
+
+/* ── 3. Buttons (ct-buttons) — color only ──────────────────────── */
+
+body.custom-themes-active.ct-buttons .btn-primary,
+body.custom-themes-active.ct-buttons .btn-primary-dark {
+	background-color: var(--ct-primary, var(--btn-primary, #171717)) !important;
+	border-color: var(--ct-primary, var(--btn-primary, #171717)) !important;
+	color: var(--ct-btn-text, #ffffff) !important;
+}
+
+body.custom-themes-active.ct-buttons .btn-primary:hover,
+body.custom-themes-active.ct-buttons .btn-primary:focus,
+body.custom-themes-active.ct-buttons .btn-primary-dark:hover {
+	background-color: var(
+		--ct-btn-hover,
+		color-mix(in srgb, var(--ct-primary, #171717) 85%, black)
+	) !important;
+	border-color: var(
+		--ct-btn-hover,
+		color-mix(in srgb, var(--ct-primary, #171717) 85%, black)
+	) !important;
+}
+
+/* ── 4. Status Colors (ct-status) ────────────────────────────────── */
+
+body.custom-themes-active.ct-status {
+	--green-600: var(--ct-success-color, #30a66d) !important;
+	--green-500: var(--ct-success-color, #30a66d) !important;
+	--red-500: var(--ct-danger-color, #e03636) !important;
+	--red-600: var(--ct-danger-color, #e03636) !important;
+	--orange-500: var(--ct-warning-color, #e86c13) !important;
+	--blue-500: var(--ct-info-color, #0289f7) !important;
+}
+
+body.custom-themes-active.ct-status .indicator-pill.green,
+body.custom-themes-active.ct-status .indicator-pill.green::before {
+	color: var(--ct-success-color, #30a66d) !important;
+	background-color: color-mix(in srgb, var(--ct-success-color, #30a66d) 12%, transparent) !important;
+}
+
+body.custom-themes-active.ct-status .indicator-pill.red,
+body.custom-themes-active.ct-status .indicator-pill.red::before {
+	color: var(--ct-danger-color, #e03636) !important;
+	background-color: color-mix(in srgb, var(--ct-danger-color, #e03636) 12%, transparent) !important;
+}
+
+body.custom-themes-active.ct-status .indicator-pill.orange,
+body.custom-themes-active.ct-status .indicator-pill.orange::before {
+	color: var(--ct-warning-color, #e86c13) !important;
+	background-color: color-mix(in srgb, var(--ct-warning-color, #e86c13) 12%, transparent) !important;
+}
+
+body.custom-themes-active.ct-status .indicator-pill.blue,
+body.custom-themes-active.ct-status .indicator-pill.blue::before {
+	color: var(--ct-info-color, #0289f7) !important;
+	background-color: color-mix(in srgb, var(--ct-info-color, #0289f7) 12%, transparent) !important;
+}
+
+/* ── 5. Navbar & Sidebar colors (ct-navside) ─────────────────────── */
+
+body.custom-themes-active.ct-navside.ct-has-navbar-bg {
+	--navbar-bg: var(--ct-navbar-bg, var(--neutral, #ffffff)) !important;
+}
+
+body.custom-themes-active.ct-navside.ct-has-navbar-bg .navbar {
+	background: var(--ct-navbar-bg, inherit) !important;
+}
+
+body.custom-themes-active.ct-navside.ct-has-navbar-text .navbar,
+body.custom-themes-active.ct-navside.ct-has-navbar-text .navbar .nav-link,
+body.custom-themes-active.ct-navside.ct-has-navbar-text .navbar .navbar-brand,
+body.custom-themes-active.ct-navside.ct-has-navbar-text .navbar .search-bar input,
+body.custom-themes-active.ct-navside.ct-has-navbar-text .navbar input::placeholder {
+	color: var(--ct-navbar-text, inherit) !important;
+}
+
+/* Timeless icons in navbar — stroke */
+body.custom-themes-active.ct-navside.ct-has-navbar-text .navbar svg.icon:not(.es-icon),
+body.custom-themes-active.ct-navside.ct-has-navbar-text .navbar svg.icon:not(.es-icon) use {
+	stroke: var(--ct-navbar-text, currentColor) !important;
+}
+
+/* Espresso icons in navbar — fill */
+body.custom-themes-active.ct-navside.ct-has-navbar-text .navbar .es-icon,
+body.custom-themes-active.ct-navside.ct-has-navbar-text .navbar .es-icon use {
+	fill: var(--ct-navbar-text, currentColor) !important;
+	stroke: none !important;
+}
+
+body.custom-themes-active.ct-navside.ct-has-navbar-bg .navbar .vertical-bar {
+	border-color: color-mix(in srgb, var(--ct-navbar-text, #ffffff) 30%, transparent) !important;
+}
+
+body.custom-themes-active.ct-navside.ct-has-sidebar-bg .desk-sidebar,
+body.custom-themes-active.ct-navside.ct-has-sidebar-bg .standard-sidebar-section,
+body.custom-themes-active.ct-navside.ct-has-sidebar-bg .layout-side-section,
+body.custom-themes-active.ct-navside.ct-has-sidebar-bg .body-sidebar {
+	background: var(--ct-sidebar-bg, inherit) !important;
+}
+
+body.custom-themes-active.ct-navside.ct-has-sidebar-text .desk-sidebar,
+body.custom-themes-active.ct-navside.ct-has-sidebar-text .desk-sidebar .sidebar-item-label,
+body.custom-themes-active.ct-navside.ct-has-sidebar-text .standard-sidebar-item .sidebar-item-label,
+body.custom-themes-active.ct-navside.ct-has-sidebar-text .layout-side-section {
+	color: var(--ct-sidebar-text, inherit) !important;
+}
+
+/* Sidebar icons when sidebar text color is set */
+body.custom-themes-active.ct-navside.ct-has-sidebar-text .desk-sidebar svg.icon:not(.es-icon),
+body.custom-themes-active.ct-navside.ct-has-sidebar-text .desk-sidebar svg.icon:not(.es-icon) use {
+	stroke: var(--ct-sidebar-text, currentColor) !important;
+}
+body.custom-themes-active.ct-navside.ct-has-sidebar-text .desk-sidebar .es-icon,
+body.custom-themes-active.ct-navside.ct-has-sidebar-text .desk-sidebar .es-icon use {
+	fill: var(--ct-sidebar-text, currentColor) !important;
+}
+
+body.custom-themes-active.ct-navside .sidebar-item-container.is-selected .sidebar-item,
+body.custom-themes-active.ct-navside .standard-sidebar-item.selected {
+	background: var(
+		--ct-sidebar-active-bg,
+		color-mix(in srgb, var(--ct-primary, #7c3aed) 14%, transparent)
+	) !important;
+}
+
+/* ── 6. Branding & Login (ct-brand) ──────────────────────────────── */
+
+body.custom-themes-active.ct-brand.ct-has-custom-logo .navbar-home img.app-logo {
+	content: var(--ct-custom-logo, none) !important;
+	height: 32px;
+	width: auto;
+}
+
+body.custom-themes-active.ct-brand.ct-has-login-bg .page-card,
+body.custom-themes-active.ct-brand.ct-has-login-bg .for-login .page-card {
+	background-color: var(--ct-login-bg, #ffffff) !important;
+}
+
+/* ── 7. Icon overrides (ct-icons) — <img> replacements ───────────── */
+
+body.custom-themes-active .ct-icon-img {
+	display: inline-block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	vertical-align: middle;
+	object-fit: contain;
+	pointer-events: none; /* clicks pass through to parent button/link */
+	aspect-ratio: 1;
+	flex-shrink: 0;
+	line-height: 1;
+}
+
+body.custom-themes-active .ct-icon-img.icon-xs { width: 12px; height: 12px; min-width: 12px; min-height: 12px; }
+body.custom-themes-active .ct-icon-img.icon-sm { width: 16px; height: 16px; min-width: 16px; min-height: 16px; }
+body.custom-themes-active .ct-icon-img.icon-md { width: 20px; height: 20px; min-width: 20px; min-height: 20px; }
+body.custom-themes-active .ct-icon-img.icon-lg { width: 24px; height: 24px; min-width: 24px; min-height: 24px; }
+body.custom-themes-active .ct-icon-img.icon-xl { width: 40px; height: 40px; min-width: 40px; min-height: 40px; }
+
+body.custom-themes-active.ct-icons.ct-icon-scaled .icon,
+body.custom-themes-active.ct-icons.ct-icon-scaled .es-icon,
+body.custom-themes-active.ct-icons.ct-icon-scaled .ct-icon-img {
+	transform: scale(var(--ct-icon-scale, 1));
+	transform-origin: center;
+}
+
+/* Icon image in various containers */
+body.custom-themes-active .navbar .ct-icon-img {
+	vertical-align: -2px;
+	filter: none !important;
+}
+body.custom-themes-active .btn .ct-icon-img {
+	margin-right: 4px;
+	vertical-align: -2px;
+}
+body.custom-themes-active .sidebar-item .ct-icon-img,
+body.custom-themes-active .standard-sidebar-item .ct-icon-img {
+	margin-right: 0px !important;
+}
+body.custom-themes-active .page-head .ct-icon-img {
+	margin-right: 6px;
+	vertical-align: -3px;
+}
+body.custom-themes-active .dropdown-item .ct-icon-img {
+	margin-right: 6px;
+	vertical-align: -2px;
+}
+
+/* Ensure parent containers don't clip icon images */
+body.custom-themes-active .sidebar-item-icon,
+body.custom-themes-active .menu-item-icon {
+	overflow: visible !important;
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+}
+
+/* ── 8. Dark mode color overrides (ct-dark-override) ─────────────── */
+
+html[data-theme="dark"] body.custom-themes-active.ct-dark-override,
+body.custom-themes-active.ct-dark-override[data-theme="dark"] {
+	--bg-color: var(--ct-dark-bg, #0f172a) !important;
+	--fg-color: var(--ct-dark-card-bg, var(--ct-dark-bg, #1e293b)) !important;
+	--card-bg: var(--ct-dark-card-bg, var(--ct-dark-bg, #1e293b)) !important;
+	--modal-bg: var(--ct-dark-card-bg, var(--ct-dark-bg, #1e293b)) !important;
+	--text-color: var(--ct-dark-text, #e2e8f0) !important;
+	--heading-color: var(--ct-dark-text, #e2e8f0) !important;
+	--primary: var(--ct-dark-primary, var(--ct-primary, #7c3aed)) !important;
+	--primary-color: var(--ct-dark-primary, var(--ct-primary, #7c3aed)) !important;
+	--btn-primary: var(--ct-dark-primary, var(--ct-primary, #7c3aed)) !important;
+	--navbar-bg: var(--ct-dark-navbar-bg, var(--ct-dark-bg, #0f172a)) !important;
+	background-color: var(--ct-dark-bg, #0f172a) !important;
+	color: var(--ct-dark-text, #e2e8f0) !important;
+}
+
+/* ── 9. Layout & Surfaces (ct-layout) ───────────────────────────── */
+
+body.custom-themes-active.ct-layout {
+	--bg-color: var(--ct-bg-color, #f8fafc) !important;
+	background-color: var(--ct-bg-color, #f8fafc) !important;
+}
+
+body.custom-themes-active.ct-layout .page-container,
+body.custom-themes-active.ct-layout .main-section {
+	background-color: var(--ct-bg-color, inherit) !important;
+}
+
+body.custom-themes-active.ct-layout .frappe-card,
+body.custom-themes-active.ct-layout .widget,
+body.custom-themes-active.ct-layout .form-layout,
+body.custom-themes-active.ct-layout .page-form {
+	--fg-color: var(--ct-card-bg, var(--fg-color)) !important;
+	background-color: var(--ct-card-bg, var(--fg-color, #fff)) !important;
+	box-shadow: var(--ct-card-shadow, 0 1px 3px rgba(0,0,0,0.08)) !important;
+	border-radius: var(--ct-border-radius, 8px) !important;
+}
+
+body.custom-themes-active.ct-layout .form-control,
+body.custom-themes-active.ct-layout .frappe-control .control-input input,
+body.custom-themes-active.ct-layout .frappe-control .control-input select,
+body.custom-themes-active.ct-layout .frappe-control .control-input textarea {
+	--control-bg: var(--ct-control-bg, var(--control-bg)) !important;
+	background-color: var(--ct-control-bg, var(--control-bg, #f4f5f6)) !important;
+}
+
+body.custom-themes-active.ct-layout .form-control,
+body.custom-themes-active.ct-layout .frappe-card,
+body.custom-themes-active.ct-layout .widget {
+	border-color: var(--ct-border-color, var(--border-color, #e5e7eb)) !important;
+}
+
+body.custom-themes-active.ct-layout .btn {
+	border-radius: var(--ct-border-radius, 8px) !important;
+}
+
+body.custom-themes-active.ct-layout .modal-content {
+	border-radius: var(--ct-border-radius, 8px) !important;
+}
+
+/* ── 10. Dialogs & Popups (ct-dialogs) ─────────────────────────── */
+
+body.custom-themes-active.ct-dialogs .modal-header {
+	background-color: var(--ct-modal-header-bg, inherit) !important;
+	color: var(--ct-modal-header-text, inherit) !important;
+}
+
+body.custom-themes-active.ct-dialogs .modal-header .modal-title,
+body.custom-themes-active.ct-dialogs .modal-header .close,
+body.custom-themes-active.ct-dialogs .modal-header .btn-modal-close {
+	color: var(--ct-modal-header-text, inherit) !important;
+}
+
+body.custom-themes-active.ct-dialogs.ct-backdrop-blur .modal-backdrop {
+	backdrop-filter: blur(4px) !important;
+	-webkit-backdrop-filter: blur(4px) !important;
+}
+
+body.custom-themes-active.ct-dialogs.ct-modal-anim-zoom .modal.show .modal-dialog {
+	animation: ct-zoom-in 0.25s ease-out !important;
+}
+body.custom-themes-active.ct-dialogs.ct-modal-anim-slide-up .modal.show .modal-dialog {
+	animation: ct-slide-up 0.25s ease-out !important;
+}
+body.custom-themes-active.ct-dialogs.ct-modal-anim-slide-down .modal.show .modal-dialog {
+	animation: ct-slide-down 0.25s ease-out !important;
+}
+
+@keyframes ct-zoom-in {
+	from { transform: scale(0.85); opacity: 0; }
+	to   { transform: scale(1);    opacity: 1; }
+}
+@keyframes ct-slide-up {
+	from { transform: translateY(40px); opacity: 0; }
+	to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes ct-slide-down {
+	from { transform: translateY(-40px); opacity: 0; }
+	to   { transform: translateY(0);     opacity: 1; }
+}
+
+/* ── 11. Header & Footer (ct-headfoot) ─────────────────────────── */
+
+body.custom-themes-active.ct-headfoot .web-header,
+body.custom-themes-active.ct-headfoot .website-header {
+	background-color: var(--ct-header-bg, inherit) !important;
+	color: var(--ct-header-text, inherit) !important;
+	border-bottom-color: var(--ct-header-border, transparent) !important;
+}
+
+body.custom-themes-active.ct-headfoot .web-header a,
+body.custom-themes-active.ct-headfoot .website-header a {
+	color: var(--ct-header-text, inherit) !important;
+}
+
+body.custom-themes-active.ct-headfoot.ct-sticky-header .web-header,
+body.custom-themes-active.ct-headfoot.ct-sticky-header .website-header {
+	position: sticky !important;
+	top: 0 !important;
+	z-index: 1020 !important;
+}
+
+body.custom-themes-active.ct-headfoot .web-footer,
+body.custom-themes-active.ct-headfoot footer.web-footer {
+	background-color: var(--ct-footer-bg, inherit) !important;
+	color: var(--ct-footer-text, inherit) !important;
+}
+
+body.custom-themes-active.ct-headfoot .web-footer a {
+	color: var(--ct-footer-link, inherit) !important;
+}
+
+/* Announcement bar */
+.ct-announcement-bar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	padding: 8px 16px;
+	background: var(--ct-announce-bg, #7c3aed);
+	color: var(--ct-announce-text, #fff);
+	font-size: 13px;
+	font-weight: 500;
+	text-align: center;
+	z-index: 1030;
+}
+.ct-announce-close {
+	background: none;
+	border: none;
+	color: inherit;
+	font-size: 18px;
+	cursor: pointer;
+	opacity: 0.7;
+	padding: 0 4px;
+	line-height: 1;
+}
+.ct-announce-close:hover { opacity: 1; }
+
+/* ── 12. Animations (ct-anim) ──────────────────────────────────── */
+
+body.custom-themes-active.ct-anim {
+	--ct-speed: var(--ct-anim-speed, 200ms) !important;
+}
+
+body.custom-themes-active.ct-anim.ct-hover-lift .frappe-card:hover,
+body.custom-themes-active.ct-anim.ct-hover-lift .widget:hover {
+	transform: translateY(-2px) !important;
+	transition: transform var(--ct-anim-speed, 200ms) ease !important;
+}
+
+body.custom-themes-active.ct-anim.ct-btn-press .btn:active {
+	transform: scale(0.97) !important;
+	transition: transform 80ms ease !important;
+}
+
+body.custom-themes-active.ct-anim.ct-page-fade .page-container {
+	animation: ct-fade-in var(--ct-anim-speed, 200ms) ease !important;
+}
+body.custom-themes-active.ct-anim.ct-page-slide-up .page-container {
+	animation: ct-slide-up var(--ct-anim-speed, 200ms) ease !important;
+}
+
+@keyframes ct-fade-in {
+	from { opacity: 0; }
+	to   { opacity: 1; }
+}
+
+/* ── 13. List View (ct-listview) ───────────────────────────────── */
+
+body.custom-themes-active.ct-listview .list-row:hover {
+	background-color: var(--ct-list-hover-bg, var(--fg-hover-color)) !important;
+}
+
+body.custom-themes-active.ct-listview .list-row-head {
+	background-color: var(--ct-list-header-bg, var(--fg-color, #fff)) !important;
+}
+
+body.custom-themes-active.ct-listview.ct-list-striped .list-row:nth-child(even) {
+	background-color: color-mix(in srgb, var(--ct-list-hover-bg, var(--bg-color, #f5f5f5)) 40%, transparent) !important;
+}
+
+/* ── 14. Form View (ct-formview) ───────────────────────────────── */
+
+body.custom-themes-active.ct-formview .section-head,
+body.custom-themes-active.ct-formview .form-section .section-head {
+	background-color: var(--ct-form-section-bg, inherit) !important;
+	color: var(--ct-form-section-text, inherit) !important;
+}
+
+/* ── 15. Scrollbar (ct-scrollbar) ──────────────────────────────── */
+
+body.custom-themes-active.ct-scrollbar ::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+body.custom-themes-active.ct-scrollbar ::-webkit-scrollbar-thumb {
+	background: var(--ct-scrollbar-thumb, #c1c1c1) !important;
+	border-radius: 4px;
+}
+body.custom-themes-active.ct-scrollbar ::-webkit-scrollbar-track {
+	background: var(--ct-scrollbar-track, #f1f1f1) !important;
+}
+
+/* Firefox scrollbar */
+body.custom-themes-active.ct-scrollbar * {
+	scrollbar-width: thin;
+	scrollbar-color: var(--ct-scrollbar-thumb, #c1c1c1) var(--ct-scrollbar-track, #f1f1f1);
+}
+
+/* ── 16. Tables / Child Tables (ct-tables) ─────────────────────── */
+
+body.custom-themes-active.ct-tables .frappe-control[data-fieldtype="Table"] .grid-heading-row {
+	background-color: var(--ct-table-header-bg, var(--fg-color, #f8f8f8)) !important;
+}
+
+body.custom-themes-active.ct-tables.ct-table-striped .frappe-control[data-fieldtype="Table"] .rows .row:nth-child(even) {
+	background-color: color-mix(in srgb, var(--ct-table-header-bg, var(--bg-color, #f5f5f5)) 30%, transparent) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Icon Picker — searchable dropdown in Custom Theme Settings form
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Pick-icon button inside the Data field */
+.ct-pick-btn {
+	position: absolute;
+	right: 6px;
+	top: 50%;
+	transform: translateY(-50%);
+	border: none;
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+	padding: 4px;
+	border-radius: 4px;
+	z-index: 1;
+	line-height: 0;
+}
+.ct-pick-btn:hover {
+	color: var(--text-color);
+	background: var(--bg-light-gray);
+}
+
+/* Icon preview in list-view of child table */
+.ct-preview-icon {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: var(--text-sm);
+}
+.ct-preview-icon svg {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+}
+.ct-preview-fullname {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	margin-left: 4px;
+}
+
+/* ── Picker grid (used in both row-picker and browser dialogs) ──── */
+
+.ct-picker-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+	gap: 6px;
+	max-height: 400px;
+	overflow-y: auto;
+	padding: 8px 0;
+}
+.ct-picker-grid-lg {
+	grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+	max-height: 500px;
+}
+
+.ct-picker-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	padding: 10px 4px 8px;
+	border: 1px solid var(--border-color, #e5e7eb);
+	border-radius: 8px;
+	cursor: pointer;
+	transition: border-color 0.15s ease, background-color 0.15s ease;
+	background: var(--fg-color, #fff);
+	min-height: 72px;
+}
+.ct-picker-item:hover {
+	border-color: var(--primary, #7c3aed);
+	background: var(--control-bg, #f8fafc);
+}
+.ct-picker-item.ct-picker-selected {
+	border-color: var(--green-500, #22c55e);
+	background: var(--green-50, #f0fdf4);
+}
+.ct-picker-item.ct-picker-used {
+	border-color: var(--blue-300, #93c5fd);
+	background: var(--blue-50, #eff6ff);
+}
+
+.ct-picker-icon {
+	width: 24px;
+	height: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.ct-picker-icon svg {
+	width: 20px;
+	height: 20px;
+}
+
+.ct-picker-label {
+	font-size: 10px;
+	line-height: 1.2;
+	text-align: center;
+	color: var(--text-muted);
+	word-break: break-word;
+	max-width: 90px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+}
+
+.ct-picker-set {
+	font-size: 8px;
+	color: var(--text-light);
+	text-align: center;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-top: 2px;
+}
+
+.ct-picker-footer {
+	font-size: var(--text-xs);
+	padding: 8px 0 4px;
+	text-align: center;
+}
+
+.ct-picker-empty {
+	text-align: center;
+	padding: 40px 20px;
+}

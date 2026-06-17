@@ -1,0 +1,956 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-05-19 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "apply_to_desk",
+  "apply_to_website",
+
+  "section_main_theme",
+  "main_theme",
+
+  "section_colors",
+  "enable_theme_colors",
+  "primary_color",
+  "secondary_color",
+  "column_break_c1",
+  "accent_color",
+  "icon_color",
+
+  "section_navbar",
+  "enable_navbar_sidebar",
+  "navbar_bg_color",
+  "navbar_text_color",
+  "column_break_nav1",
+  "sidebar_bg_color",
+  "sidebar_text_color",
+  "sidebar_active_bg_color",
+
+  "section_typography",
+  "enable_typography",
+  "font_family",
+  "heading_font",
+  "google_font_url",
+  "column_break_typo1",
+  "font_size_base",
+  "text_color",
+  "heading_color",
+  "link_color",
+  "text_muted_color",
+
+  "section_layout",
+  "enable_layout",
+  "background_color",
+  "card_bg_color",
+  "control_bg_color",
+  "column_break_layout1",
+  "border_color",
+  "border_radius",
+  "card_shadow",
+
+  "section_buttons",
+  "enable_buttons",
+  "btn_primary_text_color",
+  "column_break_btn1",
+  "btn_primary_hover_color",
+
+  "section_status",
+  "enable_status_colors",
+  "success_color",
+  "danger_color",
+  "column_break_status1",
+  "warning_color",
+  "info_color",
+
+  "section_branding",
+  "enable_branding",
+  "custom_logo",
+  "custom_favicon",
+  "column_break_brand1",
+  "login_bg_color",
+  "login_bg_image",
+
+  "section_icons",
+  "enable_icon_overrides",
+  "icon_size_multiplier",
+  "icon_overrides",
+
+  "section_dialogs",
+  "enable_dialogs",
+  "modal_header_bg",
+  "modal_header_text",
+  "column_break_dlg1",
+  "modal_backdrop_blur",
+  "modal_animation",
+
+  "section_header_footer",
+  "enable_header_footer",
+  "header_bg_color",
+  "header_text_color",
+  "header_border_color",
+  "sticky_header",
+  "column_break_hf1",
+  "footer_bg_color",
+  "footer_text_color",
+  "footer_link_color",
+  "section_hf_extras",
+  "announcement_text",
+  "announcement_bg_color",
+  "announcement_text_color",
+  "column_break_hf2",
+  "footer_custom_html",
+
+  "section_animations",
+  "enable_animations",
+  "animation_speed",
+  "page_transition",
+  "column_break_anim1",
+  "hover_lift_cards",
+  "button_press_effect",
+
+  "section_listview",
+  "enable_listview",
+  "list_hover_bg",
+  "list_header_bg",
+  "column_break_lv1",
+  "list_striped",
+
+  "section_formview",
+  "enable_formview",
+  "form_section_bg",
+  "column_break_fv1",
+  "form_section_text",
+
+  "section_scrollbar",
+  "enable_scrollbar",
+  "scrollbar_thumb",
+  "column_break_sb1",
+  "scrollbar_track",
+
+  "section_tables",
+  "enable_tables",
+  "table_header_bg",
+  "column_break_tb1",
+  "table_striped",
+
+  "section_dark",
+  "dark_mode_overrides",
+  "dark_bg_color",
+  "dark_card_bg_color",
+  "column_break_dark1",
+  "dark_text_color",
+  "dark_primary_color",
+  "dark_navbar_bg_color",
+
+  "section_advanced",
+  "custom_css"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enable Custom Theme",
+   "description": "Master switch — uncheck to disable all customizations"
+  },
+  {
+   "default": "1",
+   "fieldname": "apply_to_desk",
+   "fieldtype": "Check",
+   "label": "Apply to Desk"
+  },
+  {
+   "default": "1",
+   "fieldname": "apply_to_website",
+   "fieldtype": "Check",
+   "label": "Apply to Website"
+  },
+
+  {
+   "fieldname": "section_main_theme",
+   "fieldtype": "Section Break",
+   "label": "Main Theme",
+   "depends_on": "enabled",
+   "description": "Pick a complete theme to instantly transform Frappe's look. You can fine-tune individual settings in the sections below."
+  },
+  {
+   "fieldname": "main_theme",
+   "fieldtype": "Select",
+   "label": "Theme",
+   "options": "\nDefault (Frappe)\nOcean Blue\nCrimson Gold\nMidnight Dark\nForest Green\nRoyal Purple\nSunset Orange\nTeal Breeze\nSlate Minimal",
+   "description": "Select a preset theme — all colors, navbar, sidebar, buttons, and fonts are set automatically."
+  },
+
+  {
+   "fieldname": "section_colors",
+   "fieldtype": "Section Break",
+   "label": "Theme Colors",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_theme_colors",
+   "fieldtype": "Check",
+   "label": "Enable Theme Colors"
+  },
+  {
+   "default": "#7C3AED",
+   "fieldname": "primary_color",
+   "fieldtype": "Color",
+   "label": "Primary Color",
+   "depends_on": "enable_theme_colors",
+   "description": "Buttons, links, active states"
+  },
+  {
+   "default": "#06B6D4",
+   "fieldname": "secondary_color",
+   "fieldtype": "Color",
+   "label": "Secondary Color",
+   "depends_on": "enable_theme_colors"
+  },
+  {
+   "fieldname": "column_break_c1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "#F59E0B",
+   "fieldname": "accent_color",
+   "fieldtype": "Color",
+   "label": "Accent Color",
+   "depends_on": "enable_theme_colors"
+  },
+  {
+   "default": "#7C3AED",
+   "fieldname": "icon_color",
+   "fieldtype": "Color",
+   "label": "Icon Color",
+   "depends_on": "enable_theme_colors"
+  },
+
+  {
+   "fieldname": "section_navbar",
+   "fieldtype": "Section Break",
+   "label": "Navbar & Sidebar",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_navbar_sidebar",
+   "fieldtype": "Check",
+   "label": "Enable Navbar & Sidebar Customization"
+  },
+  {
+   "fieldname": "navbar_bg_color",
+   "fieldtype": "Color",
+   "label": "Navbar Background",
+   "depends_on": "enable_navbar_sidebar"
+  },
+  {
+   "fieldname": "navbar_text_color",
+   "fieldtype": "Color",
+   "label": "Navbar Text Color",
+   "depends_on": "enable_navbar_sidebar"
+  },
+  {
+   "fieldname": "column_break_nav1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sidebar_bg_color",
+   "fieldtype": "Color",
+   "label": "Sidebar Background",
+   "depends_on": "enable_navbar_sidebar"
+  },
+  {
+   "fieldname": "sidebar_text_color",
+   "fieldtype": "Color",
+   "label": "Sidebar Text Color",
+   "depends_on": "enable_navbar_sidebar"
+  },
+  {
+   "fieldname": "sidebar_active_bg_color",
+   "fieldtype": "Color",
+   "label": "Sidebar Active Item",
+   "depends_on": "enable_navbar_sidebar"
+  },
+
+  {
+   "fieldname": "section_typography",
+   "fieldtype": "Section Break",
+   "label": "Typography",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_typography",
+   "fieldtype": "Check",
+   "label": "Enable Typography Customization"
+  },
+  {
+   "default": "Poppins",
+   "fieldname": "font_family",
+   "fieldtype": "Data",
+   "label": "Body Font",
+   "depends_on": "enable_typography"
+  },
+  {
+   "default": "Poppins",
+   "fieldname": "heading_font",
+   "fieldtype": "Data",
+   "label": "Heading Font",
+   "depends_on": "enable_typography"
+  },
+  {
+   "default": "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap",
+   "fieldname": "google_font_url",
+   "fieldtype": "Small Text",
+   "label": "Google Font URL",
+   "depends_on": "enable_typography"
+  },
+  {
+   "fieldname": "column_break_typo1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "14px",
+   "fieldname": "font_size_base",
+   "fieldtype": "Select",
+   "label": "Base Font Size",
+   "options": "12px\n13px\n14px\n15px\n16px",
+   "depends_on": "enable_typography"
+  },
+  {
+   "default": "#1E293B",
+   "fieldname": "text_color",
+   "fieldtype": "Color",
+   "label": "Body Text Color",
+   "depends_on": "enable_typography"
+  },
+  {
+   "fieldname": "heading_color",
+   "fieldtype": "Color",
+   "label": "Heading Color",
+   "depends_on": "enable_typography"
+  },
+  {
+   "fieldname": "link_color",
+   "fieldtype": "Color",
+   "label": "Link Color",
+   "depends_on": "enable_typography"
+  },
+  {
+   "fieldname": "text_muted_color",
+   "fieldtype": "Color",
+   "label": "Muted Text Color",
+   "depends_on": "enable_typography"
+  },
+
+  {
+   "fieldname": "section_layout",
+   "fieldtype": "Section Break",
+   "label": "Layout & Surfaces",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_layout",
+   "fieldtype": "Check",
+   "label": "Enable Layout Customization"
+  },
+  {
+   "default": "#F8FAFC",
+   "fieldname": "background_color",
+   "fieldtype": "Color",
+   "label": "Page Background",
+   "depends_on": "enable_layout"
+  },
+  {
+   "fieldname": "card_bg_color",
+   "fieldtype": "Color",
+   "label": "Card Background",
+   "depends_on": "enable_layout"
+  },
+  {
+   "fieldname": "control_bg_color",
+   "fieldtype": "Color",
+   "label": "Input Background",
+   "depends_on": "enable_layout"
+  },
+  {
+   "fieldname": "column_break_layout1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "border_color",
+   "fieldtype": "Color",
+   "label": "Border Color",
+   "depends_on": "enable_layout"
+  },
+  {
+   "default": "Medium",
+   "fieldname": "border_radius",
+   "fieldtype": "Select",
+   "label": "Border Radius",
+   "options": "None\nSmall\nMedium\nLarge\nPill",
+   "depends_on": "enable_layout"
+  },
+  {
+   "default": "Subtle",
+   "fieldname": "card_shadow",
+   "fieldtype": "Select",
+   "label": "Card Shadow",
+   "options": "None\nSubtle\nMedium\nHeavy",
+   "depends_on": "enable_layout"
+  },
+
+  {
+   "fieldname": "section_buttons",
+   "fieldtype": "Section Break",
+   "label": "Buttons",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_buttons",
+   "fieldtype": "Check",
+   "label": "Enable Button Customization"
+  },
+  {
+   "default": "#FFFFFF",
+   "fieldname": "btn_primary_text_color",
+   "fieldtype": "Color",
+   "label": "Primary Button Text",
+   "depends_on": "enable_buttons"
+  },
+  {
+   "fieldname": "column_break_btn1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "btn_primary_hover_color",
+   "fieldtype": "Color",
+   "label": "Primary Button Hover",
+   "depends_on": "enable_buttons"
+  },
+
+  {
+   "fieldname": "section_status",
+   "fieldtype": "Section Break",
+   "label": "Status Colors",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_status_colors",
+   "fieldtype": "Check",
+   "label": "Enable Status Color Customization"
+  },
+  {
+   "default": "#30A66D",
+   "fieldname": "success_color",
+   "fieldtype": "Color",
+   "label": "Success",
+   "depends_on": "enable_status_colors"
+  },
+  {
+   "default": "#E03636",
+   "fieldname": "danger_color",
+   "fieldtype": "Color",
+   "label": "Danger",
+   "depends_on": "enable_status_colors"
+  },
+  {
+   "fieldname": "column_break_status1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "#E86C13",
+   "fieldname": "warning_color",
+   "fieldtype": "Color",
+   "label": "Warning",
+   "depends_on": "enable_status_colors"
+  },
+  {
+   "default": "#0289F7",
+   "fieldname": "info_color",
+   "fieldtype": "Color",
+   "label": "Info",
+   "depends_on": "enable_status_colors"
+  },
+
+  {
+   "fieldname": "section_branding",
+   "fieldtype": "Section Break",
+   "label": "Branding & Login",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_branding",
+   "fieldtype": "Check",
+   "label": "Enable Branding Customization"
+  },
+  {
+   "fieldname": "custom_logo",
+   "fieldtype": "Attach Image",
+   "label": "Navbar Logo",
+   "depends_on": "enable_branding"
+  },
+  {
+   "fieldname": "custom_favicon",
+   "fieldtype": "Attach Image",
+   "label": "Favicon",
+   "depends_on": "enable_branding"
+  },
+  {
+   "fieldname": "column_break_brand1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "login_bg_color",
+   "fieldtype": "Color",
+   "label": "Login Page Background",
+   "depends_on": "enable_branding"
+  },
+  {
+   "fieldname": "login_bg_image",
+   "fieldtype": "Attach Image",
+   "label": "Login Background Image",
+   "depends_on": "enable_branding"
+  },
+
+  {
+   "fieldname": "section_icons",
+   "fieldtype": "Section Break",
+   "label": "Icon Overrides",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_icon_overrides",
+   "fieldtype": "Check",
+   "label": "Enable Icon Overrides"
+  },
+  {
+   "default": "1",
+   "fieldname": "icon_size_multiplier",
+   "fieldtype": "Float",
+   "label": "Icon Size Multiplier",
+   "depends_on": "enable_icon_overrides",
+   "description": "1.0 = default size"
+  },
+  {
+   "fieldname": "icon_overrides",
+   "fieldtype": "Table",
+   "label": "Icon Replacements",
+   "options": "Custom Icon Override",
+   "depends_on": "enable_icon_overrides"
+  },
+
+  {
+   "fieldname": "section_dialogs",
+   "fieldtype": "Section Break",
+   "label": "Dialogs & Popups",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_dialogs",
+   "fieldtype": "Check",
+   "label": "Enable Dialog Customization"
+  },
+  {
+   "fieldname": "modal_header_bg",
+   "fieldtype": "Color",
+   "label": "Dialog Header Background",
+   "depends_on": "enable_dialogs"
+  },
+  {
+   "fieldname": "modal_header_text",
+   "fieldtype": "Color",
+   "label": "Dialog Header Text",
+   "depends_on": "enable_dialogs"
+  },
+  {
+   "fieldname": "column_break_dlg1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "modal_backdrop_blur",
+   "fieldtype": "Check",
+   "label": "Blur Background Behind Dialogs",
+   "depends_on": "enable_dialogs"
+  },
+  {
+   "default": "Fade",
+   "fieldname": "modal_animation",
+   "fieldtype": "Select",
+   "label": "Dialog Animation",
+   "options": "None\nFade\nZoom\nSlide Up\nSlide Down",
+   "depends_on": "enable_dialogs"
+  },
+
+  {
+   "fieldname": "section_header_footer",
+   "fieldtype": "Section Break",
+   "label": "Header & Footer",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_header_footer",
+   "fieldtype": "Check",
+   "label": "Enable Header & Footer Customization"
+  },
+  {
+   "fieldname": "header_bg_color",
+   "fieldtype": "Color",
+   "label": "Website Header Background",
+   "depends_on": "enable_header_footer"
+  },
+  {
+   "fieldname": "header_text_color",
+   "fieldtype": "Color",
+   "label": "Website Header Text",
+   "depends_on": "enable_header_footer"
+  },
+  {
+   "fieldname": "header_border_color",
+   "fieldtype": "Color",
+   "label": "Header Bottom Border",
+   "depends_on": "enable_header_footer"
+  },
+  {
+   "default": "0",
+   "fieldname": "sticky_header",
+   "fieldtype": "Check",
+   "label": "Sticky Header",
+   "depends_on": "enable_header_footer"
+  },
+  {
+   "fieldname": "column_break_hf1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "footer_bg_color",
+   "fieldtype": "Color",
+   "label": "Footer Background",
+   "depends_on": "enable_header_footer"
+  },
+  {
+   "fieldname": "footer_text_color",
+   "fieldtype": "Color",
+   "label": "Footer Text",
+   "depends_on": "enable_header_footer"
+  },
+  {
+   "fieldname": "footer_link_color",
+   "fieldtype": "Color",
+   "label": "Footer Links",
+   "depends_on": "enable_header_footer"
+  },
+  {
+   "fieldname": "section_hf_extras",
+   "fieldtype": "Section Break",
+   "label": "Announcement Bar & Custom Footer",
+   "depends_on": "enable_header_footer",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "announcement_text",
+   "fieldtype": "Data",
+   "label": "Announcement Text",
+   "depends_on": "enable_header_footer",
+   "description": "Shown as a dismissible bar at the top of every page. Leave empty to hide."
+  },
+  {
+   "default": "#7C3AED",
+   "fieldname": "announcement_bg_color",
+   "fieldtype": "Color",
+   "label": "Announcement Background",
+   "depends_on": "enable_header_footer"
+  },
+  {
+   "default": "#FFFFFF",
+   "fieldname": "announcement_text_color",
+   "fieldtype": "Color",
+   "label": "Announcement Text Color",
+   "depends_on": "enable_header_footer"
+  },
+  {
+   "fieldname": "column_break_hf2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "footer_custom_html",
+   "fieldtype": "Code",
+   "label": "Custom Footer HTML (Website)",
+   "options": "HTML",
+   "depends_on": "enable_header_footer",
+   "description": "Injected above the website footer. System Managers only."
+  },
+
+  {
+   "fieldname": "section_animations",
+   "fieldtype": "Section Break",
+   "label": "Animations",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_animations",
+   "fieldtype": "Check",
+   "label": "Enable Animations"
+  },
+  {
+   "default": "Normal",
+   "fieldname": "animation_speed",
+   "fieldtype": "Select",
+   "label": "Animation Speed",
+   "options": "Fast\nNormal\nSlow",
+   "depends_on": "enable_animations"
+  },
+  {
+   "default": "Fade",
+   "fieldname": "page_transition",
+   "fieldtype": "Select",
+   "label": "Page Transition",
+   "options": "None\nFade\nSlide Up",
+   "depends_on": "enable_animations"
+  },
+  {
+   "fieldname": "column_break_anim1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "hover_lift_cards",
+   "fieldtype": "Check",
+   "label": "Lift Cards on Hover",
+   "depends_on": "enable_animations"
+  },
+  {
+   "default": "1",
+   "fieldname": "button_press_effect",
+   "fieldtype": "Check",
+   "label": "Button Press Effect",
+   "depends_on": "enable_animations"
+  },
+
+  {
+   "fieldname": "section_listview",
+   "fieldtype": "Section Break",
+   "label": "List View",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_listview",
+   "fieldtype": "Check",
+   "label": "Enable List View Customization"
+  },
+  {
+   "fieldname": "list_hover_bg",
+   "fieldtype": "Color",
+   "label": "Row Hover Background",
+   "depends_on": "enable_listview"
+  },
+  {
+   "fieldname": "list_header_bg",
+   "fieldtype": "Color",
+   "label": "List Header Background",
+   "depends_on": "enable_listview"
+  },
+  {
+   "fieldname": "column_break_lv1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "list_striped",
+   "fieldtype": "Check",
+   "label": "Alternating Row Colors",
+   "depends_on": "enable_listview"
+  },
+
+  {
+   "fieldname": "section_formview",
+   "fieldtype": "Section Break",
+   "label": "Form View",
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_formview",
+   "fieldtype": "Check",
+   "label": "Enable Form View Customization"
+  },
+  {
+   "fieldname": "form_section_bg",
+   "fieldtype": "Color",
+   "label": "Section Header Background",
+   "depends_on": "enable_formview"
+  },
+  {
+   "fieldname": "column_break_fv1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "form_section_text",
+   "fieldtype": "Color",
+   "label": "Section Header Text",
+   "depends_on": "enable_formview"
+  },
+
+  {
+   "fieldname": "section_scrollbar",
+   "fieldtype": "Section Break",
+   "label": "Scrollbar",
+   "depends_on": "enabled",
+   "collapsible": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_scrollbar",
+   "fieldtype": "Check",
+   "label": "Enable Custom Scrollbar"
+  },
+  {
+   "fieldname": "scrollbar_thumb",
+   "fieldtype": "Color",
+   "label": "Scrollbar Thumb",
+   "depends_on": "enable_scrollbar"
+  },
+  {
+   "fieldname": "column_break_sb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "scrollbar_track",
+   "fieldtype": "Color",
+   "label": "Scrollbar Track",
+   "depends_on": "enable_scrollbar"
+  },
+
+  {
+   "fieldname": "section_tables",
+   "fieldtype": "Section Break",
+   "label": "Tables (Child Tables)",
+   "depends_on": "enabled",
+   "collapsible": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_tables",
+   "fieldtype": "Check",
+   "label": "Enable Table Customization"
+  },
+  {
+   "fieldname": "table_header_bg",
+   "fieldtype": "Color",
+   "label": "Table Header Background",
+   "depends_on": "enable_tables"
+  },
+  {
+   "fieldname": "column_break_tb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "table_striped",
+   "fieldtype": "Check",
+   "label": "Striped Rows",
+   "depends_on": "enable_tables"
+  },
+
+  {
+   "fieldname": "section_dark",
+   "fieldtype": "Section Break",
+   "label": "Dark Mode Overrides",
+   "collapsible": 1,
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "dark_mode_overrides",
+   "fieldtype": "Check",
+   "label": "Enable Dark Mode Overrides"
+  },
+  {
+   "fieldname": "dark_bg_color",
+   "fieldtype": "Color",
+   "label": "Dark — Background",
+   "depends_on": "dark_mode_overrides"
+  },
+  {
+   "fieldname": "dark_card_bg_color",
+   "fieldtype": "Color",
+   "label": "Dark — Card Background",
+   "depends_on": "dark_mode_overrides"
+  },
+  {
+   "fieldname": "column_break_dark1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dark_text_color",
+   "fieldtype": "Color",
+   "label": "Dark — Text Color",
+   "depends_on": "dark_mode_overrides"
+  },
+  {
+   "fieldname": "dark_primary_color",
+   "fieldtype": "Color",
+   "label": "Dark — Primary Color",
+   "depends_on": "dark_mode_overrides"
+  },
+  {
+   "fieldname": "dark_navbar_bg_color",
+   "fieldtype": "Color",
+   "label": "Dark — Navbar Background",
+   "depends_on": "dark_mode_overrides"
+  },
+
+  {
+   "fieldname": "section_advanced",
+   "fieldtype": "Section Break",
+   "label": "Custom CSS",
+   "collapsible": 1,
+   "depends_on": "enabled"
+  },
+  {
+   "fieldname": "custom_css",
+   "fieldtype": "Code",
+   "label": "Custom CSS",
+   "options": "CSS"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-05-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Custom Themes",
+ "name": "Custom Theme Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
