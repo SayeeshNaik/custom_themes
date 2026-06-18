@@ -108,6 +108,13 @@
 		enable_tables: 0,
 		table_header_bg: "",
 		table_striped: 0,
+		// Desk Layout & Icon Overrides
+		enable_desk_layout: 0,
+		desk_columns: "",
+		desk_icon_size: "",
+		desk_icon_gap: "",
+		desk_icon_radius: "",
+		desk_icon_overrides: [],
 		// Dark Mode
 		dark_mode_overrides: 0,
 		dark_bg_color: "",
@@ -136,6 +143,7 @@
 		enable_formview: "ct-formview",
 		enable_scrollbar: "ct-scrollbar",
 		enable_tables: "ct-tables",
+		enable_desk_layout: "ct-desk",
 		dark_mode_overrides: "ct-dark-override",
 	};
 
@@ -167,6 +175,7 @@
 			}
 		}
 		if (src.icon_overrides) merged.icon_overrides = src.icon_overrides;
+		if (src.desk_icon_overrides) merged.desk_icon_overrides = src.desk_icon_overrides;
 		return merged;
 	}
 
@@ -449,13 +458,19 @@
 		var icon_name = get_icon_name_from_use(use_el);
 		if (!icon_name || !_icon_override_map[icon_name]) return;
 
+		replace_icon_element_with_url(svg_el, _icon_override_map[icon_name], icon_name);
+	}
+
+	function replace_icon_element_with_url(svg_el, override_url, label) {
+		if (!svg_el || svg_el.tagName === "IMG" || !svg_el.parentNode) return;
+
 		var size = "sm";
 		["xs", "sm", "md", "lg", "xl"].forEach(function (sz) {
 			if (svg_el.classList.contains("icon-" + sz)) size = sz;
 		});
 
 		var temp = document.createElement("div");
-		temp.innerHTML = build_img_icon(_icon_override_map[icon_name], icon_name, size, "", "", "");
+		temp.innerHTML = build_img_icon(override_url, label, size, "", "", "");
 		var img_el = temp.firstChild;
 		if (!img_el) return;
 
@@ -472,14 +487,74 @@
 
 	function scan_and_replace_icons() {
 		if (!Object.keys(_icon_override_map).length) return;
+		// 1. SVG sprite icons (existing logic)
 		var icons = document.querySelectorAll("svg.icon, svg.es-icon");
-		var replaced = 0;
 		icons.forEach(function (el) {
-			var before = el.tagName;
 			replace_icon_element(el);
-			if (el.parentNode === null || el.tagName !== before) replaced++;
 		});
-		/* replaced count available for debugging if needed */
+
+		// 2. Desk app icons (<img class="app-icon"> inside .desktop-icon)
+		// Match by data-id (app name) against the override map.
+		// User enters the app name (e.g. "Framework") as icon_name in child table.
+		var desk_icons = document.querySelectorAll(".desktop-icon");
+		desk_icons.forEach(function (link) {
+			var app_id = (link.getAttribute("data-id") || "").trim();
+			if (!app_id) return;
+
+			var override_url = _icon_override_map[app_id] || _icon_override_map[app_id.toLowerCase()];
+			if (!override_url) return;
+
+			var app_img = link.querySelector("img.app-icon");
+			if (!app_img) return;
+
+			if (app_img.dataset.ctDeskOriginal && app_img.src.indexOf(override_url) !== -1) return;
+
+			if (!app_img.dataset.ctDeskOriginal) {
+				app_img.dataset.ctDeskOriginal = app_img.getAttribute("src");
+			}
+			app_img.setAttribute("src", override_url);
+			app_img.classList.add("ct-desk-replaced");
+		});
+
+		// 3. Sidebar items — match by title OR item-name OR item-icon
+		// e.g. title="DocType", item-name="DocType", item-icon="database"
+		// User can enter any of these values as icon_name in the child table.
+		var sidebar_items = document.querySelectorAll(".sidebar-item-container");
+		sidebar_items.forEach(function (container) {
+			var title = (container.getAttribute("title") || "").trim();
+			var item_name = (container.getAttribute("item-name") || "").trim();
+			var icon_span = container.querySelector("[item-icon]");
+			var item_icon = icon_span ? (icon_span.getAttribute("item-icon") || "").trim() : "";
+
+			// Check all three identifiers against the override map
+			var override_url =
+				(title && (_icon_override_map[title] || _icon_override_map[title.toLowerCase()])) ||
+				(item_name && (_icon_override_map[item_name] || _icon_override_map[item_name.toLowerCase()])) ||
+				(item_icon && (_icon_override_map[item_icon] || _icon_override_map[item_icon.toLowerCase()]));
+
+			if (!override_url) return;
+
+			// Find the SVG icon inside this sidebar item
+			var svg_el = container.querySelector("svg.icon, svg.es-icon");
+			if (!svg_el) return;
+			// Skip if already replaced
+			if (svg_el.tagName === "IMG") return;
+
+			replace_icon_element_with_url(svg_el, override_url, title || item_name || item_icon);
+		});
+
+		// Restore desk icons that no longer have an override
+		document.querySelectorAll("img.ct-desk-replaced").forEach(function (img) {
+			var link = img.closest(".desktop-icon");
+			if (!link) return;
+			var app_id = (link.getAttribute("data-id") || "").trim();
+			var has_override = _icon_override_map[app_id] || _icon_override_map[app_id.toLowerCase()];
+			if (!has_override && img.dataset.ctDeskOriginal) {
+				img.setAttribute("src", img.dataset.ctDeskOriginal);
+				delete img.dataset.ctDeskOriginal;
+				img.classList.remove("ct-desk-replaced");
+			}
+		});
 	}
 
 	function restore_original_icons() {
@@ -491,6 +566,14 @@
 				if (svg && img.parentNode) img.parentNode.replaceChild(svg, img);
 			} else if (img.parentNode) {
 				img.remove();
+			}
+		});
+		// Restore desk app icons
+		document.querySelectorAll("img.ct-desk-replaced").forEach(function (img) {
+			if (img.dataset.ctDeskOriginal) {
+				img.setAttribute("src", img.dataset.ctDeskOriginal);
+				delete img.dataset.ctDeskOriginal;
+				img.classList.remove("ct-desk-replaced");
 			}
 		});
 	}
@@ -505,6 +588,310 @@
 				if (svg && img.parentNode) img.parentNode.replaceChild(svg, img);
 			}
 		});
+	}
+
+	// ── Desk-specific icon overrides (separate from sidebar icon system) ──
+
+	function apply_desk_icon_overrides(overrides) {
+		if (!overrides || !overrides.length) { restore_desk_overrides(); return; }
+
+		// Build map: app_name → custom_icon url
+		var desk_map = {};
+		overrides.forEach(function (o) {
+			var name = (o.app_name || "").trim();
+			var url = (o.custom_icon || "").trim();
+			var enabled = o.enabled === 1 || o.enabled === true || o.enabled === "1" || o.enabled === undefined;
+			if (name && url && enabled) {
+				desk_map[name] = url;
+				desk_map[name.toLowerCase()] = url;
+			}
+		});
+
+		function do_replace() {
+			var desk_icons = document.querySelectorAll(".desktop-icon");
+			desk_icons.forEach(function (link) {
+				var app_id = (link.getAttribute("data-id") || "").trim();
+				if (!app_id) return;
+
+				var override_url = desk_map[app_id] || desk_map[app_id.toLowerCase()];
+				var app_img = link.querySelector("img.app-icon");
+				if (!app_img) return;
+
+				if (override_url) {
+					if (app_img.dataset.ctDeskOvOriginal && app_img.src.indexOf(override_url) !== -1) return;
+					if (!app_img.dataset.ctDeskOvOriginal) {
+						app_img.dataset.ctDeskOvOriginal = app_img.getAttribute("src");
+					}
+					app_img.setAttribute("src", override_url);
+					app_img.classList.add("ct-desk-ov-replaced");
+				} else if (app_img.classList.contains("ct-desk-ov-replaced") && app_img.dataset.ctDeskOvOriginal) {
+					app_img.setAttribute("src", app_img.dataset.ctDeskOvOriginal);
+					delete app_img.dataset.ctDeskOvOriginal;
+					app_img.classList.remove("ct-desk-ov-replaced");
+				}
+			});
+		}
+
+		do_replace();
+		setTimeout(do_replace, 500);
+		setTimeout(do_replace, 1500);
+	}
+
+	function restore_desk_overrides() {
+		document.querySelectorAll("img.ct-desk-ov-replaced").forEach(function (img) {
+			if (img.dataset.ctDeskOvOriginal) {
+				img.setAttribute("src", img.dataset.ctDeskOvOriginal);
+				delete img.dataset.ctDeskOvOriginal;
+			}
+			img.classList.remove("ct-desk-ov-replaced");
+		});
+	}
+
+	/* ══════════════════════════════════════════════════════════════
+	   Desk Two-Sidebar System
+	   Column 1: primary icon strip (from existing .icons-container)
+	   Column 2: .ct-desk-sub-sidebar (child items of selected folder)
+	   Column 3: .ct-desk-main-panel (welcome / content)
+	   ══════════════════════════════════════════════════════════════ */
+
+	var _ct_desk_folder_handler_installed = false;
+
+	function inject_desk_welcome_panel() {
+		var desk_container = document.querySelector(".desktop-container");
+		if (!desk_container) return;
+
+		// Inject main content panel if missing
+		if (!desk_container.querySelector(".ct-desk-main-panel")) {
+			var user_full = (typeof frappe !== "undefined" && frappe.session)
+				? (frappe.session.user_fullname || frappe.session.user || "User")
+				: "User";
+			var first_name = user_full.split(" ")[0];
+			var hour = new Date().getHours();
+			var greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+			// Recent items
+			var recent_html = "";
+			try {
+				var recent_routes = (frappe.boot.user && frappe.boot.user.recent) || [];
+				var raw = typeof recent_routes === "string" ? JSON.parse(recent_routes) : recent_routes;
+				var parsed = [];
+				if (Array.isArray(raw)) {
+					for (var i = 0; i < Math.min(raw.length, 8); i++) {
+						var item = raw[i];
+						if (Array.isArray(item) && item.length >= 2) {
+							parsed.push({ doctype: item[0], name: item[1] });
+						}
+					}
+				}
+				if (parsed.length) {
+					recent_html = '<div class="ct-desk-recent"><h3>Recent Items</h3><ul>';
+					parsed.forEach(function (r) {
+						var href = "/app/" + frappe.router.slug(r.doctype) + "/" + encodeURIComponent(r.name);
+						recent_html += '<li><a href="' + href + '">'
+							+ '<span class="ct-desk-recent-type">' + frappe.utils.escape_html(r.doctype) + '</span>'
+							+ '<span class="ct-desk-recent-name">' + frappe.utils.escape_html(r.name) + '</span>'
+							+ '</a></li>';
+					});
+					recent_html += '</ul></div>';
+				}
+			} catch (e) { /* ignore */ }
+
+			// Shortcuts
+			var shortcuts_html = '<div class="ct-desk-shortcuts"><h3>Quick Actions</h3><div class="ct-desk-shortcut-grid">'
+				+ '<div class="ct-desk-shortcut-card" onclick="frappe.new_doc()"><span class="ct-desk-shortcut-icon">\u{1F4C4}</span><span class="ct-desk-shortcut-label">New Document</span></div>'
+				+ '<div class="ct-desk-shortcut-card" onclick="frappe.searchdialog &amp;&amp; frappe.searchdialog.show()"><span class="ct-desk-shortcut-icon">\u{1F50D}</span><span class="ct-desk-shortcut-label">Search</span></div>'
+				+ '<div class="ct-desk-shortcut-card" onclick="frappe.set_route(\'Form\', \'Custom Theme Settings\')"><span class="ct-desk-shortcut-icon">⚙️</span><span class="ct-desk-shortcut-label">Settings</span></div>'
+				+ '</div></div>';
+
+			var panel = document.createElement("div");
+			panel.className = "ct-desk-main-panel";
+			panel.innerHTML = '<div class="ct-desk-welcome">'
+				+ '<h2>' + greeting + ', ' + frappe.utils.escape_html(first_name) + '!</h2>'
+				+ '<p>Welcome to your workspace</p></div>'
+				+ shortcuts_html + recent_html;
+			desk_container.appendChild(panel);
+		}
+
+		// Install folder-click interceptor (once)
+		if (!_ct_desk_folder_handler_installed) {
+			_ct_desk_folder_handler_installed = true;
+			install_folder_click_handler();
+		}
+	}
+
+	function remove_desk_welcome_panel() {
+		var panel = document.querySelector(".ct-desk-main-panel");
+		if (panel) panel.remove();
+		var sub = document.querySelector(".ct-desk-sub-sidebar");
+		if (sub) sub.remove();
+		// Remove active highlight
+		document.querySelectorAll(".desktop-icon.ct-desk-active").forEach(function (el) {
+			el.classList.remove("ct-desk-active");
+		});
+		_ct_desk_folder_handler_installed = false;
+	}
+
+	/* Build the list of child icons for a given parent label */
+	function get_child_icons_for(parent_label) {
+		if (typeof frappe === "undefined" || !frappe.boot || !frappe.boot.desktop_icons) return [];
+		var children = [];
+		frappe.boot.desktop_icons.forEach(function (icon) {
+			if (icon.parent_icon === parent_label && !icon.hidden) {
+				children.push(icon);
+			}
+		});
+		children.sort(function (a, b) {
+			if (a.idx === b.idx) return (a.label || "").localeCompare(b.label || "");
+			return (a.idx || 0) - (b.idx || 0);
+		});
+		return children;
+	}
+
+	/* Get the route for an icon (mirrors Frappe's get_route logic) */
+	function get_icon_route(icon) {
+		console.log("icon ==== ",icon)
+		if (icon.link_type === "DocType") {
+			return "/app/" + frappe.router.slug(icon.label);
+		} else if (icon.link_type === "Page") {
+			return "/app/" + (icon.link || icon.label).toLowerCase().replace(/ /g, "-");
+		} else if (icon.link_type === "Report") {
+			return "/app/query-report/" + encodeURIComponent(icon.label);
+		} else if (icon.route) {
+			return icon.route;
+		}
+		return "/app/" + frappe.router.slug(icon.label);
+	}
+
+	/* Show child icons in the second sidebar */
+	function show_sub_sidebar(parent_label, children) {
+		var desk_container = document.querySelector(".desktop-container");
+		if (!desk_container) return;
+
+		// Remove existing sub-sidebar
+		var existing = desk_container.querySelector(".ct-desk-sub-sidebar");
+		if (existing) existing.remove();
+
+		if (!children || !children.length) return;
+
+		var sub = document.createElement("div");
+		sub.className = "ct-desk-sub-sidebar";
+
+		var header_html = '<div class="ct-desk-sub-sidebar-header"><h3>'
+			+ frappe.utils.escape_html(parent_label) + '</h3></div>';
+
+		var list_html = '<ul class="ct-desk-sub-sidebar-list">';
+		children.forEach(function (child) {
+			console.log("child ==== ",child)
+			// var route = get_icon_route(child);
+			var icon_html = "";
+
+			// Try to get an image for the child icon
+			var img_src = "";
+			if (typeof frappe.utils.get_desktop_icon === "function") {
+				img_src = frappe.utils.get_desktop_icon(child.label, frappe.boot.desktop_icon_style) || "";
+			}
+			if (!img_src) {
+				img_src = child.logo_url || child.icon_image || "";
+			}
+
+			if (img_src) {
+				icon_html = '<div class="ct-sub-icon"><img src="' + frappe.utils.escape_html(img_src)
+					+ '" alt="' + frappe.utils.escape_html(child.label) + '"></div>';
+			} else {
+				// Fallback: use a colored circle with the first letter
+				var bg = child.bg_color || "#94a3b8";
+				var letter = (child.label || "?")[0].toUpperCase();
+				icon_html = '<div class="ct-sub-icon" style="background:' + bg + ';color:#fff;font-weight:600;font-size:14px;">'
+					+ letter + '</div>';
+			}
+
+			list_html += '<li><a href="' + frappe.utils.escape_html(route) + '">'
+				+ icon_html
+				+ '<span class="ct-sub-label">' + frappe.utils.escape_html(child.label) + '</span>'
+				+ '</a></li>';
+		});
+		list_html += '</ul>';
+
+		sub.innerHTML = header_html + list_html;
+
+		// Insert after .icons-container but before .ct-desk-main-panel
+		var main_panel = desk_container.querySelector(".ct-desk-main-panel");
+		if (main_panel) {
+			desk_container.insertBefore(sub, main_panel);
+		} else {
+			desk_container.appendChild(sub);
+		}
+	}
+
+	/* Intercept folder/app icon clicks to show second sidebar instead of modal */
+	function install_folder_click_handler() {
+		var desk_container = document.querySelector(".desktop-container");
+		if (!desk_container) return;
+
+		// Use event delegation on the icons-container
+		var icons_container = desk_container.querySelector(":scope > .icons-container");
+		if (!icons_container) return;
+
+		// We use a capturing listener to intercept BEFORE Frappe's own click handler
+		icons_container.addEventListener("click", function (e) {
+			// Only active when ct-desk class is on body
+			if (!document.body.classList.contains("ct-desk")) return;
+
+			// Find the .desktop-icon ancestor
+			var icon_el = e.target.closest(".desktop-icon");
+			if (!icon_el) return;
+
+			var app_id = (icon_el.getAttribute("data-id") || "").trim();
+			if (!app_id) return;
+
+			// Find the icon data
+			var icon_data = null;
+			if (frappe.boot && frappe.boot.desktop_icons) {
+				for (var i = 0; i < frappe.boot.desktop_icons.length; i++) {
+					if (frappe.boot.desktop_icons[i].label === app_id) {
+						icon_data = frappe.boot.desktop_icons[i];
+						break;
+					}
+				}
+			}
+
+			if (!icon_data) return;
+
+			// Check if this icon has children (is a folder/app with sub-items)
+			var children = get_child_icons_for(app_id);
+			if (children.length === 0) {
+				// Not a folder — let the standard navigation happen, but hide sub-sidebar
+				var existing_sub = desk_container.querySelector(".ct-desk-sub-sidebar");
+				if (existing_sub) existing_sub.remove();
+				// Remove old active state
+				icons_container.querySelectorAll(".desktop-icon.ct-desk-active").forEach(function (el) {
+					el.classList.remove("ct-desk-active");
+				});
+				return; // Don't prevent default — let it navigate
+			}
+
+			// It's a folder: prevent modal, show sub-sidebar instead
+			e.preventDefault();
+			e.stopPropagation();
+			e.stopImmediatePropagation();
+
+			// Close any open modal (in case Frappe already opened one)
+			if (typeof frappe !== "undefined" && frappe.desktop_utils && frappe.desktop_utils.modal) {
+				frappe.desktop_utils.close_desktop_modal();
+			}
+			// Also force-hide any bootstrap modal
+			try { $(".desktop-modal").modal("hide"); } catch (ex) { /* ignore */ }
+
+			// Highlight the active icon
+			icons_container.querySelectorAll(".desktop-icon.ct-desk-active").forEach(function (el) {
+				el.classList.remove("ct-desk-active");
+			});
+			icon_el.classList.add("ct-desk-active");
+
+			// Show children in the second sidebar
+			show_sub_sidebar(app_id, children);
+
+		}, true); // ← capturing phase to fire before Frappe's handler
 	}
 
 	function schedule_icon_scan() {
@@ -570,6 +957,7 @@
 		"--ct-form-section-bg", "--ct-form-section-text",
 		"--ct-scrollbar-thumb", "--ct-scrollbar-track",
 		"--ct-table-header-bg",
+		"--ct-desk-columns", "--ct-desk-icon-size", "--ct-desk-gap", "--ct-desk-radius",
 		"--ct-dark-bg", "--ct-dark-card-bg", "--ct-dark-text", "--ct-dark-primary",
 		"--ct-dark-navbar-bg",
 	];
@@ -595,6 +983,8 @@
 		_icon_override_map = {};
 		stop_icon_observer();
 		restore_original_icons();
+		restore_desk_overrides();
+		remove_desk_welcome_panel();
 	}
 
 	// ══════════════════════════════════════════════════════════════
@@ -842,6 +1232,36 @@
 		} else {
 			root.style.removeProperty("--ct-table-header-bg");
 			body.classList.remove("ct-table-striped");
+		}
+
+		// ── Desk Layout & Icon Overrides ──
+		if (is_on(s.enable_desk_layout)) {
+			// Grid columns
+			var col_map = { "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8" };
+			set_var(root, "--ct-desk-columns", col_map[s.desk_columns] || "");
+
+			// Icon size
+			var size_map = { Small: "40px", Medium: "56px", Large: "72px", "Extra Large": "88px" };
+			set_var(root, "--ct-desk-icon-size", size_map[s.desk_icon_size] || "");
+
+			// Gap
+			var gap_map = { Compact: "8px", Normal: "16px", Relaxed: "24px", Spacious: "36px" };
+			set_var(root, "--ct-desk-gap", gap_map[s.desk_icon_gap] || "");
+
+			// Radius
+			var rad_map = { None: "0", Small: "6px", Medium: "12px", Large: "20px", Circle: "50%" };
+			set_var(root, "--ct-desk-radius", rad_map[s.desk_icon_radius] || "");
+
+			// Desk-specific icon overrides (separate from sidebar icon_overrides)
+			apply_desk_icon_overrides(s.desk_icon_overrides || []);
+
+			// Inject the welcome panel into the desk main area
+			inject_desk_welcome_panel();
+		} else {
+			["--ct-desk-columns", "--ct-desk-icon-size", "--ct-desk-gap", "--ct-desk-radius"]
+				.forEach(function (p) { root.style.removeProperty(p); });
+			restore_desk_overrides();
+			remove_desk_welcome_panel();
 		}
 
 		// ── Dark Mode ──

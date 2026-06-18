@@ -602,6 +602,455 @@ body.custom-themes-active.ct-tables.ct-table-striped .frappe-control[data-fieldt
 	background-color: color-mix(in srgb, var(--ct-table-header-bg, var(--bg-color, #f5f5f5)) 30%, transparent) !important;
 }
 
+/* ── 17. Desk Layout & Icon Overrides (ct-desk) ──────────────────── */
+/* Two-sidebar layout: primary apps | sub-items | main content */
+
+/* -- Wrapper -- */
+body.custom-themes-active.ct-desk .desktop-wrapper {
+	background: #ffffff !important;
+	min-height: 100vh !important;
+}
+
+/* -- Navbar -- */
+body.custom-themes-active.ct-desk .navbar-container {
+	background: #ffffff !important;
+	border-bottom: 1px solid #e2e8f0 !important;
+	box-shadow: 0 1px 3px rgba(15,23,42,0.04) !important;
+}
+
+body.custom-themes-active.ct-desk .desktop-navbar-modal-search {
+	background: #f1f5f9 !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 10px !important;
+}
+
+body.custom-themes-active.ct-desk .desktop-navbar-modal-search:hover {
+	border-color: #3b82f6 !important;
+}
+
+body.custom-themes-active.ct-desk #brand-logo {
+	height: 28px !important;
+}
+
+/* -- Desktop container: flex row for 3 columns -- */
+body.custom-themes-active.ct-desk .desktop-container {
+	display: flex !important;
+	flex-direction: row !important;
+	align-items: stretch !important;
+	justify-content: flex-start !important;
+	min-height: calc(100vh - 52px) !important;
+}
+
+body.custom-themes-active.ct-desk .desktop-container::after {
+	display: none !important;
+}
+
+/* ── PRIMARY SIDEBAR (icons-container = first sidebar) ── */
+body.custom-themes-active.ct-desk .desktop-container > .icons-container {
+	width: 72px !important;
+	min-width: 72px !important;
+	max-width: 72px !important;
+	margin-top: 0 !important;
+	padding: 12px 0 !important;
+	background: linear-gradient(180deg, #1e3a5f 0%, #0f2440 100%) !important;
+	border-right: none !important;
+	overflow-y: auto !important;
+	overflow-x: hidden !important;
+	flex-shrink: 0 !important;
+	display: flex !important;
+	flex-direction: column !important;
+}
+
+/* Icons → vertical column, icon-only (no labels) */
+body.custom-themes-active.ct-desk .desktop-container > .icons-container > .icons {
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: center !important;
+	gap: 4px !important;
+	padding: 0 6px !important;
+	grid-template-columns: unset !important;
+	grid-template-rows: unset !important;
+}
+
+/* Each icon in first sidebar */
+body.custom-themes-active.ct-desk .desktop-container > .icons-container > .icons > .desktop-icon {
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 4px !important;
+	width: 56px !important;
+	height: 56px !important;
+	padding: 6px 4px !important;
+	border-radius: 12px !important;
+	border: none !important;
+	cursor: pointer !important;
+	transition: background 0.15s ease !important;
+	text-decoration: none !important;
+}
+
+body.custom-themes-active.ct-desk .desktop-container > .icons-container > .icons > .desktop-icon:hover {
+	background: rgba(255,255,255,0.12) !important;
+}
+
+body.custom-themes-active.ct-desk .desktop-container > .icons-container > .icons > .desktop-icon.ct-desk-active {
+	background: rgba(255,255,255,0.18) !important;
+	box-shadow: inset 0 0 0 2px rgba(255,255,255,0.25) !important;
+}
+
+/* Icon box in first sidebar */
+body.custom-themes-active.ct-desk .desktop-container > .icons-container .icon-container {
+	width: 32px !important;
+	height: 32px !important;
+	min-width: 32px !important;
+	min-height: 32px !important;
+	padding: 0 !important;
+	border-radius: 8px !important;
+	background: rgba(255,255,255,0.12) !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	overflow: hidden !important;
+}
+
+body.custom-themes-active.ct-desk .desktop-container > .icons-container .icon-container:hover {
+	transform: none !important;
+}
+
+body.custom-themes-active.ct-desk .desktop-container > .icons-container .icon-container img {
+	width: 32px !important;
+	height: 32px !important;
+	border-radius: 8px !important;
+	object-fit: cover !important;
+}
+
+body.custom-themes-active.ct-desk .desktop-container > .icons-container .icon-container .icon,
+body.custom-themes-active.ct-desk .desktop-container > .icons-container .icon-container svg {
+	width: 18px !important;
+	height: 18px !important;
+	color: #ffffff !important;
+	stroke: #ffffff !important;
+}
+
+/* Tiny label under icon in first sidebar */
+body.custom-themes-active.ct-desk .desktop-container > .icons-container .icon-caption {
+	text-align: center !important;
+	height: auto !important;
+}
+
+body.custom-themes-active.ct-desk .desktop-container > .icons-container .icon-title {
+	color: rgba(255,255,255,0.8) !important;
+	font-size: 9px !important;
+	font-weight: 500 !important;
+	white-space: nowrap !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	max-width: 52px !important;
+	line-height: 1.1 !important;
+}
+
+body.custom-themes-active.ct-desk .desktop-container > .icons-container .icon-subtitle {
+	display: none !important;
+}
+
+/* Hide folder thumbnail preview inside first sidebar */
+body.custom-themes-active.ct-desk .desktop-container > .icons-container .folder-icon {
+	background: rgba(255,255,255,0.06) !important;
+	border-radius: 8px !important;
+	box-shadow: none !important;
+}
+
+body.custom-themes-active.ct-desk .desktop-container > .icons-container .folder-icon .icons-container {
+	display: none !important;
+}
+
+/* ── SECOND SIDEBAR (injected by JS: .ct-desk-sub-sidebar) ── */
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar {
+	width: 240px !important;
+	min-width: 240px !important;
+	max-width: 240px !important;
+	background: #f8fafc !important;
+	border-right: 1px solid #e2e8f0 !important;
+	overflow-y: auto !important;
+	padding: 0 !important;
+	flex-shrink: 0 !important;
+	display: flex !important;
+	flex-direction: column !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-header {
+	padding: 20px 20px 12px !important;
+	border-bottom: 1px solid #e2e8f0 !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-header h3 {
+	font-size: 16px !important;
+	font-weight: 700 !important;
+	color: #1e293b !important;
+	margin: 0 !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list {
+	list-style: none !important;
+	margin: 0 !important;
+	padding: 8px !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li {
+	margin: 0 !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a {
+	display: flex !important;
+	align-items: center !important;
+	gap: 12px !important;
+	padding: 10px 14px !important;
+	border-radius: 10px !important;
+	text-decoration: none !important;
+	transition: background 0.15s ease !important;
+	color: #334155 !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a:hover {
+	background: #e2e8f0 !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a .ct-sub-icon {
+	width: 36px !important;
+	height: 36px !important;
+	min-width: 36px !important;
+	border-radius: 10px !important;
+	background: #e2e8f0 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	overflow: hidden !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a .ct-sub-icon img {
+	width: 36px !important;
+	height: 36px !important;
+	border-radius: 10px !important;
+	object-fit: cover !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a .ct-sub-icon svg,
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a .ct-sub-icon .icon {
+	width: 20px !important;
+	height: 20px !important;
+	color: #475569 !important;
+	stroke: #475569 !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a .ct-sub-label {
+	font-size: 14px !important;
+	font-weight: 500 !important;
+	color: #334155 !important;
+}
+
+/* ── MAIN CONTENT PANEL ── */
+body.custom-themes-active.ct-desk .ct-desk-main-panel {
+	flex: 1 !important;
+	background: #ffffff !important;
+	min-height: calc(100vh - 52px) !important;
+	padding: 40px 48px !important;
+	overflow-y: auto !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-welcome h2 {
+	font-size: 28px !important;
+	font-weight: 700 !important;
+	color: #1e293b !important;
+	margin: 0 0 4px 0 !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-welcome p {
+	font-size: 15px !important;
+	color: #64748b !important;
+	margin: 0 0 32px 0 !important;
+}
+
+/* Quick action cards */
+body.custom-themes-active.ct-desk .ct-desk-shortcuts h3,
+body.custom-themes-active.ct-desk .ct-desk-recent h3 {
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	color: #475569 !important;
+	text-transform: uppercase !important;
+	letter-spacing: 0.05em !important;
+	margin: 0 0 16px 0 !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-shortcut-grid {
+	display: flex !important;
+	gap: 12px !important;
+	flex-wrap: wrap !important;
+	margin-bottom: 36px !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-shortcut-card {
+	display: flex !important;
+	align-items: center !important;
+	gap: 10px !important;
+	background: #ffffff !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	padding: 14px 20px !important;
+	cursor: pointer !important;
+	transition: all 0.2s ease !important;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-shortcut-card:hover {
+	border-color: #3b82f6 !important;
+	box-shadow: 0 4px 12px rgba(59,130,246,0.12) !important;
+	transform: translateY(-1px) !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-shortcut-icon {
+	font-size: 20px !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-shortcut-label {
+	font-size: 14px !important;
+	font-weight: 500 !important;
+	color: #334155 !important;
+}
+
+/* Recent items */
+body.custom-themes-active.ct-desk .ct-desk-recent ul {
+	list-style: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-recent li { margin: 0 !important; }
+
+body.custom-themes-active.ct-desk .ct-desk-recent li a {
+	display: flex !important;
+	align-items: center !important;
+	gap: 12px !important;
+	padding: 10px 16px !important;
+	border-radius: 8px !important;
+	text-decoration: none !important;
+	transition: background 0.15s ease !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-recent li a:hover {
+	background: #f8fafc !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-recent-type {
+	font-size: 11px !important;
+	font-weight: 600 !important;
+	color: #3b82f6 !important;
+	background: #eff6ff !important;
+	padding: 2px 8px !important;
+	border-radius: 4px !important;
+	min-width: 80px !important;
+	text-align: center !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-recent-name {
+	font-size: 14px !important;
+	color: #334155 !important;
+}
+
+/* Hide page indicators & arrows */
+body.custom-themes-active.ct-desk .page-indicator-container { display: none !important; }
+body.custom-themes-active.ct-desk .left-page-arrow,
+body.custom-themes-active.ct-desk .right-page-arrow { display: none !important; }
+
+/* Hide the standard modal — we use the second sidebar instead */
+body.custom-themes-active.ct-desk .desktop-modal {
+	display: none !important;
+}
+
+body.custom-themes-active.ct-desk .modal-backdrop {
+	display: none !important;
+}
+
+/* Edit button */
+body.custom-themes-active.ct-desk .desktop-edit {
+	background: #3b82f6 !important;
+	opacity: 1 !important;
+	border-radius: 10px !important;
+	bottom: 24px !important;
+	right: 24px !important;
+}
+
+body.custom-themes-active.ct-desk .desktop-edit:hover {
+	background: #2563eb !important;
+}
+
+body.custom-themes-active.ct-desk .edit-mode-buttons {
+	bottom: 24px !important;
+	right: 24px !important;
+}
+
+body.custom-themes-active.ct-desk .edit-mode-buttons .btn-primary {
+	background: #3b82f6 !important;
+	border-color: #3b82f6 !important;
+}
+
+body.custom-themes-active.ct-desk .hide-button {
+	background: #ef4444 !important;
+	color: #ffffff !important;
+	top: -4px !important;
+	left: auto !important;
+	right: -4px !important;
+}
+
+/* Scrollbar for first sidebar */
+body.custom-themes-active.ct-desk .desktop-container > .icons-container::-webkit-scrollbar { width: 3px; }
+body.custom-themes-active.ct-desk .desktop-container > .icons-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+body.custom-themes-active.ct-desk .desktop-container > .icons-container::-webkit-scrollbar-track { background: transparent; }
+
+/* Scrollbar for second sidebar */
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar::-webkit-scrollbar { width: 4px; }
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar::-webkit-scrollbar-track { background: transparent; }
+
+/* -- Responsive -- */
+@media (max-width: 768px) {
+	body.custom-themes-active.ct-desk .desktop-container {
+		flex-direction: column !important;
+	}
+
+	body.custom-themes-active.ct-desk .desktop-container > .icons-container {
+		width: 100% !important;
+		min-width: 100% !important;
+		max-width: 100% !important;
+		height: auto !important;
+		min-height: auto !important;
+	}
+
+	body.custom-themes-active.ct-desk .desktop-container > .icons-container > .icons {
+		flex-direction: row !important;
+		flex-wrap: wrap !important;
+		justify-content: center !important;
+		padding: 8px !important;
+	}
+
+	body.custom-themes-active.ct-desk .desktop-container > .icons-container > .icons > .desktop-icon {
+		width: 60px !important;
+		height: 60px !important;
+	}
+
+	body.custom-themes-active.ct-desk .ct-desk-sub-sidebar {
+		width: 100% !important;
+		min-width: 100% !important;
+		max-width: 100% !important;
+		border-right: none !important;
+		border-bottom: 1px solid #e2e8f0 !important;
+	}
+
+	body.custom-themes-active.ct-desk .ct-desk-main-panel {
+		padding: 20px 16px !important;
+		min-height: auto !important;
+	}
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    Icon Picker — searchable dropdown in Custom Theme Settings form
    ═══════════════════════════════════════════════════════════════════ */

@@ -32,6 +32,7 @@ class CustomThemeSettings(Document):
 		self.validate_icon_multiplier()
 		self.make_attachments_public()
 		self.validate_icon_overrides()
+		self.validate_desk_icon_overrides()
 
 	def validate_font_url(self):
 		if self.google_font_url and "fonts.googleapis.com" not in self.google_font_url:
@@ -52,6 +53,10 @@ class CustomThemeSettings(Document):
 				self.set(fieldname, ensure_public_file(value))
 
 		for row in self.icon_overrides or []:
+			if row.custom_icon:
+				row.custom_icon = ensure_public_file(row.custom_icon)
+
+		for row in self.desk_icon_overrides or []:
 			if row.custom_icon:
 				row.custom_icon = ensure_public_file(row.custom_icon)
 
@@ -80,6 +85,34 @@ class CustomThemeSettings(Document):
 			if ext not in ALLOWED_ICON_EXTENSIONS:
 				frappe.throw(
 					f"Icon Replacements, Row {row.idx} ({row.icon_name}): "
+					"Replacement must be SVG, PNG, JPG, GIF, or WebP"
+				)
+
+	def validate_desk_icon_overrides(self):
+		seen = set()
+		for row in self.desk_icon_overrides or []:
+			if not row.app_name:
+				frappe.throw(f"Desk Icon Overrides, Row {row.idx}: Please set the App Name")
+
+			row.app_name = row.app_name.strip()
+
+			if not row.custom_icon:
+				frappe.throw(
+					f"Desk Icon Overrides, Row {row.idx} ({row.app_name}): "
+					"Please upload a Custom Icon file"
+				)
+
+			if row.app_name in seen:
+				frappe.throw(
+					f"Desk Icon Overrides, Row {row.idx}: Duplicate app '{row.app_name}'. "
+					"Each app can only be overridden once."
+				)
+			seen.add(row.app_name)
+
+			ext = (row.custom_icon or "").rsplit(".", 1)[-1].lower().split("?")[0]
+			if ext not in ALLOWED_ICON_EXTENSIONS:
+				frappe.throw(
+					f"Desk Icon Overrides, Row {row.idx} ({row.app_name}): "
 					"Replacement must be SVG, PNG, JPG, GIF, or WebP"
 				)
 
