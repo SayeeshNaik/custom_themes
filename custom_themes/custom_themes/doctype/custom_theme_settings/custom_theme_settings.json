@@ -136,6 +136,15 @@
   "column_break_tb1",
   "table_striped",
 
+  "section_desk",
+  "enable_desk_layout",
+  "desk_columns",
+  "desk_icon_size",
+  "column_break_desk1",
+  "desk_icon_gap",
+  "desk_icon_radius",
+  "desk_icon_overrides",
+
   "section_dark",
   "dark_mode_overrides",
   "dark_bg_color",
@@ -865,6 +874,68 @@
    "fieldtype": "Check",
    "label": "Striped Rows",
    "depends_on": "enable_tables"
+  },
+
+  {
+   "fieldname": "section_desk",
+   "fieldtype": "Section Break",
+   "label": "Desk Layout & Icon Overrides",
+   "collapsible": 1,
+   "depends_on": "enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_desk_layout",
+   "fieldtype": "Check",
+   "label": "Enable Desk Customization"
+  },
+  {
+   "fieldname": "desk_columns",
+   "fieldtype": "Select",
+   "label": "Grid Columns",
+   "options": "\n3\n4\n5\n6\n7\n8",
+   "default": "",
+   "depends_on": "enable_desk_layout",
+   "description": "Number of app icon columns on the desk home page"
+  },
+  {
+   "fieldname": "desk_icon_size",
+   "fieldtype": "Select",
+   "label": "Icon Size",
+   "options": "\nSmall\nMedium\nLarge\nExtra Large",
+   "default": "",
+   "depends_on": "enable_desk_layout",
+   "description": "Size of desk app icons"
+  },
+  {
+   "fieldname": "column_break_desk1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "desk_icon_gap",
+   "fieldtype": "Select",
+   "label": "Icon Spacing",
+   "options": "\nCompact\nNormal\nRelaxed\nSpacious",
+   "default": "",
+   "depends_on": "enable_desk_layout",
+   "description": "Gap between app icons on the desk"
+  },
+  {
+   "fieldname": "desk_icon_radius",
+   "fieldtype": "Select",
+   "label": "Icon Corner Radius",
+   "options": "\nNone\nSmall\nMedium\nLarge\nCircle",
+   "default": "",
+   "depends_on": "enable_desk_layout",
+   "description": "Border radius for desk app icon containers"
+  },
+  {
+   "fieldname": "desk_icon_overrides",
+   "fieldtype": "Table",
+   "label": "Desk App Icon Overrides",
+   "options": "Desk Icon Override",
+   "depends_on": "enable_desk_layout",
+   "description": "Replace desk app icons. Enter the exact app name as shown on the desk."
   },
 
   {

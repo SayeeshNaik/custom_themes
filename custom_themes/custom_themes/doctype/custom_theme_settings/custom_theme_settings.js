@@ -208,10 +208,9 @@ function setup_icon_dropdown_for_row(frm, cdt, cdn) {
 	if ($input.data("ct-dropdown-attached")) return;
 	$input.data("ct-dropdown-attached", true);
 
-	// Make input read-only for typing but clickable
-	$input.attr("readonly", true);
-	$input.css("cursor", "pointer");
-	$input.attr("placeholder", __("Click to select icon..."));
+	// Allow typing (for app names like "Framework") and clicking (for picker)
+	$input.css("cursor", "text");
+	$input.attr("placeholder", __("Click picker or type app name..."));
 
 	// Add a search icon indicator
 	var $wrapper = $input.closest(".frappe-control");
@@ -224,11 +223,7 @@ function setup_icon_dropdown_for_row(frm, cdt, cdn) {
 		$wrapper.find(".control-input").append($btn);
 	}
 
-	// Click opens the picker dialog
-	$input.on("click", function (e) {
-		e.stopPropagation();
-		show_icon_picker_for_row(frm, cdt, cdn);
-	});
+	// Picker button opens the dialog; clicking input allows typing
 	$wrapper.find(".ct-pick-btn").on("click", function (e) {
 		e.stopPropagation();
 		show_icon_picker_for_row(frm, cdt, cdn);
@@ -248,6 +243,7 @@ function show_icon_picker_for_row(frm, cdt, cdn) {
 			espresso_line: "Espresso Line",
 			espresso_solid: "Espresso Solid",
 			timeless: "Timeless",
+			lucide: "Lucide",
 		};
 
 		var d = new frappe.ui.Dialog({
@@ -258,7 +254,7 @@ function show_icon_picker_for_row(frm, cdt, cdn) {
 					fieldname: "icon_set_filter",
 					fieldtype: "Select",
 					label: __("Icon Set"),
-					options: "All\nEspresso Line\nEspresso Solid\nTimeless",
+					options: "All\nEspresso Line\nEspresso Solid\nTimeless\nLucide",
 					default: "All",
 					change: function () { render_picker(); },
 				},
@@ -266,11 +262,33 @@ function show_icon_picker_for_row(frm, cdt, cdn) {
 					fieldname: "search",
 					fieldtype: "Data",
 					label: __("Search Icons"),
-					placeholder: __("Type to search... e.g. home, edit, settings"),
+					placeholder: __("Type to search... e.g. home, edit, bell, settings"),
 					change: function () { render_picker(); },
 				},
 				{ fieldname: "icon_grid", fieldtype: "HTML" },
+				{
+					fieldname: "app_note",
+					fieldtype: "HTML",
+					options: '<div class="text-muted small mt-2" style="padding:8px 12px;background:var(--bg-light-gray);border-radius:6px;">' +
+						'<strong>Tip:</strong> To replace a <b>Desk app icon</b> (e.g. Framework, HR Module), ' +
+						'close this dialog and type the app name directly in the "Standard Icon" field. ' +
+						'The name must match the <code>data-id</code> attribute exactly.</div>',
+				},
 			],
+		});
+
+		// Add "Enter Custom Name" button for desk app icons / custom entries
+		d.set_primary_action(__("Enter Custom Name"), function () {
+			var custom_name = d.get_value("search") || "";
+			if (!custom_name.trim()) {
+				frappe.show_alert({ message: __("Type a name in the search box first (e.g. Framework, HR Module)"), indicator: "orange" });
+				return;
+			}
+			frappe.model.set_value(cdt, cdn, "icon_name", custom_name.trim());
+			frm.refresh_field("icon_overrides");
+			render_icon_previews(frm);
+			d.hide();
+			frappe.show_alert({ message: __("Set custom name: {0}", [custom_name.trim()]), indicator: "green" });
 		});
 
 		d.show();
@@ -284,8 +302,10 @@ function show_icon_picker_for_row(frm, cdt, cdn) {
 				"Espresso Line": "espresso_line",
 				"Espresso Solid": "espresso_solid",
 				"Timeless": "timeless",
+				"Lucide": "lucide",
 			}[filter_set];
 
+			// console.log("catalogue", catalogue.length, catalogue)
 			var items = catalogue.filter(function (item) {
 				if (filter_key && item.set !== filter_key) return false;
 				if (search && item.short.indexOf(search) === -1) return false;
@@ -1035,6 +1055,7 @@ function show_icon_browser(frm) {
 				"Espresso Line": "espresso_line",
 				"Espresso Solid": "espresso_solid",
 				"Timeless": "timeless",
+				"Lucide": "lucide",
 			}[filter_set];
 
 			var items = catalogue.filter(function (item) {

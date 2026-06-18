@@ -41,3 +41,5 @@ def get_icon_list():
 		"lucide": LUCIDE_ICONS,
 		"catalogue": get_short_icon_catalogue(),
 	}
+
+

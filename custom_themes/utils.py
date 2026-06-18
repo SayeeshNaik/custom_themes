@@ -98,6 +98,12 @@ DEFAULTS = {
 	"enable_tables": 0,
 	"table_header_bg": "",
 	"table_striped": 0,
+	# Section: Desk Layout & Icon Overrides
+	"enable_desk_layout": 0,
+	"desk_columns": "",
+	"desk_icon_size": "",
+	"desk_icon_gap": "",
+	"desk_icon_radius": "",
 	# Section: Dark Mode
 	"dark_mode_overrides": 0,
 	"dark_bg_color": "",
@@ -140,8 +146,20 @@ def get_theme_settings():
 				})
 		settings["icon_overrides"] = icon_overrides
 
+		# Desk icon overrides — separate child table
+		desk_icon_overrides = []
+		if hasattr(doc, "desk_icon_overrides") and doc.desk_icon_overrides:
+			for row in doc.desk_icon_overrides:
+				desk_icon_overrides.append({
+					"app_name": row.app_name,
+					"custom_icon": row.custom_icon,
+					"enabled": row.enabled,
+				})
+		settings["desk_icon_overrides"] = desk_icon_overrides
+
 	except Exception:
 		settings["icon_overrides"] = []
+		settings["desk_icon_overrides"] = []
 
 	return settings
 
@@ -238,12 +256,38 @@ TIMELESS_ICONS = [
 
 # Lucide icons used by Frappe core (sidebar, toolbar, views).
 # These live in frappe/public/icons/lucide/icons.svg as <symbol id="icon-{name}">.
+# Add any icon name here that appears in sidebar/workspace as item-icon="..."
+# or in <use href="#icon-..."> and is NOT already in TIMELESS_ICONS.
 LUCIDE_ICONS = [
-	"bell","bell-off","bell-ring","chevron-down","chevrons-up-down","circle-check",
-	"clipboard","copy","corner-down-left","ellipsis","equal","equal-approximately",
-	"expand","external-link","eye","eye-off","folder-open","funnel","keyboard","list",
-	"minimize-2","reply","reply-all","scan-barcode","search","settings","shrink",
-	"trash","users","x","arrow-down","arrow-right","arrow-up","check",
+	# Sidebar / toolbar core
+	"bell","bell-off","bell-ring","search","copy","edit","trash","trash-2","home",
+	"info","logout","maximize","monitor","pen","rotate-ccw","sliders-horizontal",
+	"panel-right-open","wallpaper",
+	# Navigation & layout
+	"chevron-down","chevron-up","chevron-left","chevron-right","chevrons-up-down",
+	"arrow-down","arrow-up","arrow-left","arrow-right","arrow-up-right",
+	"expand","shrink","minimize-2","external-link","corner-down-left",
+	# Data & files
+	"database","file","file-text","folder","folder-open","clipboard",
+	"list","table","table-2","grid-2x2","kanban",
+	# Actions
+	"check","check-check","plus","minus","x","save","download","upload",
+	"reply","reply-all","share","share-2","link","unlink",
+	# Common UI
+	"eye","eye-off","lock","unlock","key","shield","user","users",
+	"settings","funnel","filter","scan-barcode","keyboard",
+	"circle-check","circle-x","circle-alert","triangle-alert",
+	"ellipsis","equal","equal-approximately",
+	# Workspace / module icons
+	"hammer","briefcase","building","building-2","calculator","calendar",
+	"chart-bar","chart-line","chart-pie","clock","cloud","code",
+	"coins","credit-card","file-chart-line","gauge","globe","globe-lock",
+	"graduation-cap","hard-drive","heart","image","inbox","layers",
+	"layout-dashboard","library","mail","map-pin","megaphone",
+	"message-circle","package","palette","phone","plug","printer",
+	"puzzle","receipt","rocket","ruler","server","shopping-cart",
+	"star","stethoscope","store","tag","tags","terminal","ticket",
+	"tool-case","truck","video","wallet","wrench","zap",
 ]
 
 # Aliases: map semantically equivalent icon names across icon sets.
