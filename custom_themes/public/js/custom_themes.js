@@ -977,39 +977,42 @@
 					+ letter + '</div>';
 			}
 
-			// If route is empty, make a click handler that uses frappe.set_route
-			if (route) {
-				list_html += '<li><a href="' + frappe.utils.escape_html(route) + '">'
-					+ icon_html
-					+ '<span class="ct-sub-label">' + frappe.utils.escape_html(child.label) + '</span>'
-					+ '</a></li>';
-			} else {
-				// Use data-attribute and a click handler as fallback
-				list_html += '<li><a href="#" class="ct-sub-no-route" data-label="'
-					+ frappe.utils.escape_html(child.label) + '">'
-					+ icon_html
-					+ '<span class="ct-sub-label">' + frappe.utils.escape_html(child.label) + '</span>'
-					+ '</a></li>';
-			}
+			// All links open in new tab; store route as data-attr for click handler
+			list_html += '<li><a href="#" class="ct-sub-link" data-route="'
+				+ frappe.utils.escape_html(route || "")
+				+ '" data-label="' + frappe.utils.escape_html(child.label) + '">'
+				+ icon_html
+				+ '<span class="ct-sub-label">' + frappe.utils.escape_html(child.label) + '</span>'
+				+ '</a></li>';
 		});
 		list_html += '</ul>';
 
 		sub.innerHTML = header_html + list_html;
 
-		// Fallback click handler for items without resolved routes
-		sub.querySelectorAll(".ct-sub-no-route").forEach(function (a) {
+		// Click handler: open in new tab + keep active state
+		sub.querySelectorAll(".ct-sub-link").forEach(function (a) {
 			a.addEventListener("click", function (ev) {
 				ev.preventDefault();
+
+				// Set active state on this item (keep it highlighted)
+				sub.querySelectorAll(".ct-sub-link.ct-sub-active").forEach(function (el) {
+					el.classList.remove("ct-sub-active");
+				});
+				a.classList.add("ct-sub-active");
+
+				var route = a.getAttribute("data-route");
 				var label = a.getAttribute("data-label");
-				// Try to find the DOM icon and simulate its click (which Frappe already set up)
-				var dom_icon = document.querySelector(
-					'.desktop-icon[data-id="' + label + '"]'
-				);
-				if (dom_icon && dom_icon.getAttribute("href")) {
-					window.location.href = dom_icon.getAttribute("href");
+				if (route) {
+					window.open(route, "_blank");
 				} else {
-					// Last resort: try standard workspace route
-					frappe.set_route("app", frappe.router.slug(label));
+					// Fallback: try reading href from Frappe's DOM icon
+					var dom_icon = document.querySelector('.desktop-icon[data-id="' + label + '"]');
+					var href = dom_icon ? dom_icon.getAttribute("href") : null;
+					if (href && href !== "#") {
+						window.open(href, "_blank");
+					} else {
+						window.open("/app/" + frappe.router.slug(label), "_blank");
+					}
 				}
 			});
 		});
@@ -1057,32 +1060,27 @@
 			var children = get_child_icons_for(app_id);
 
 			if (children.length === 0) {
-				// ── Not a folder: handle navigation ourselves ──
-				// We intercept because Frappe might show the "not configured" alert
-				// if label doesn't match workspace_sidebar_item key.
+				// ── Not a folder: open in new tab ──
 				e.preventDefault();
 				e.stopPropagation();
 				e.stopImmediatePropagation();
 
-				// Hide the sub-sidebar
+				// Hide sub-sidebar (not relevant for non-folder icons)
 				var existing_sub = desk_container.querySelector(".ct-desk-sub-sidebar");
 				if (existing_sub) existing_sub.remove();
+
+				// Keep active highlight
 				icons_container.querySelectorAll(".desktop-icon.ct-desk-active").forEach(function (el) {
 					el.classList.remove("ct-desk-active");
 				});
+				icon_el.classList.add("ct-desk-active");
 
-				// Resolve the route properly
+				// Resolve and open in new tab
 				var route = get_icon_route(icon_data);
 				if (route) {
-					// Use frappe.set_route for internal routes, window.open for external
-					if (route.indexOf("http") === 0 && route.indexOf(window.location.origin) !== 0) {
-						window.open(route, "_blank");
-					} else {
-						window.location.href = route;
-					}
+					window.open(route, "_blank");
 				} else {
-					// Absolute last resort: try the workspace route by label slug
-					frappe.set_route("app", frappe.router.slug(app_id));
+					window.open("/app/" + frappe.router.slug(app_id), "_blank");
 				}
 				return;
 			}
@@ -1105,6 +1103,9 @@
 			icon_el.classList.add("ct-desk-active");
 
 			show_sub_sidebar(app_id, children);
+
+			// Load module workspace in main panel
+			load_workspace_in_main_panel(app_id);
 
 		}, true);
 	}
