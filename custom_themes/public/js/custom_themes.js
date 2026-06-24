@@ -732,6 +732,7 @@
 	}
 
 	/* Build the list of child icons for a given parent label */
+	/* ── Build child-icon list for a parent label ── */
 	function get_child_icons_for(parent_label) {
 		if (typeof frappe === "undefined" || !frappe.boot || !frappe.boot.desktop_icons) return [];
 		var children = [];
@@ -747,22 +748,119 @@
 		return children;
 	}
 
-	/* Get the route for an icon (mirrors Frappe's get_route logic) */
+	/*
+	 * Resolve the real route for a desktop icon.
+	 * This mirrors Frappe's own get_route() from desktop.js exactly:
+	 *   1. External links → use icon.link directly
+	 *   2. Workspace Sidebar type → look up workspace_sidebar_item by label,
+	 *      find the first Link item, then call frappe.utils.generate_route()
+	 *   3. Fallback → read the href already set by Frappe on the DOM element
+	 */
 	function get_icon_route(icon) {
-		console.log("icon ==== ",icon)
-		if (icon.link_type === "DocType") {
-			return "/app/" + frappe.router.slug(icon.label);
-		} else if (icon.link_type === "Page") {
-			return "/app/" + (icon.link || icon.label).toLowerCase().replace(/ /g, "-");
-		} else if (icon.link_type === "Report") {
-			return "/app/query-report/" + encodeURIComponent(icon.label);
-		} else if (icon.route) {
-			return icon.route;
+		if (!icon) return "";
+
+		// 1. External links
+		if (icon.link_type === "External" && icon.link) {
+			if (icon.link.indexOf("http") === 0) return icon.link;
+			return window.location.origin + icon.link;
 		}
-		return "/app/" + frappe.router.slug(icon.label);
+
+		// 2. Workspace Sidebar — the standard Frappe path
+		var sidebar_map = (frappe.boot && frappe.boot.workspace_sidebar_item) || {};
+		var sidebar = sidebar_map[icon.label.toLowerCase()];
+		if (icon.link_type === "Workspace Sidebar" && sidebar) {
+			var first_link = null;
+			var items = sidebar.items || [];
+			for (var i = 0; i < items.length; i++) {
+				if (items[i].type === "Link") { first_link = items[i]; break; }
+			}
+			if (first_link) {
+				try {
+					if (first_link.link_type === "Report" && first_link.link_to) {
+						var args = { type: "Report", name: first_link.link_to };
+						if (first_link.report) {
+							args.is_query_report =
+								first_link.report.report_type === "Query Report" ||
+								first_link.report.report_type === "Script Report";
+							args.report_ref_doctype = first_link.report.ref_doctype;
+						}
+						return frappe.utils.generate_route(args);
+					} else if (first_link.link_type === "Workspace") {
+						var ws_slug = frappe.router.slug(first_link.link_to);
+						var ws = frappe.workspaces && frappe.workspaces[ws_slug];
+						if (ws) {
+							return frappe.utils.generate_route({
+								type: "workspace",
+								name: ws.title,
+								"public": ws["public"] ? 1 : 0,
+								route_options: { sidebar: icon.label },
+							});
+						}
+					} else if (first_link.link_type === "URL" && first_link.url) {
+						return first_link.url;
+					} else if (first_link.link_type === "Page" && first_link.route_options) {
+						return frappe.utils.generate_route({
+							type: first_link.link_type,
+							name: first_link.link_to,
+							route_options: JSON.parse(first_link.route_options),
+						});
+					} else {
+						return frappe.utils.generate_route({
+							type: first_link.link_type,
+							name: first_link.link_to,
+							tab: first_link.tab,
+							route_options: { sidebar: icon.label },
+						});
+					}
+				} catch (ex) { /* fall through to fallbacks */ }
+			}
+		}
+
+		// 3. Read the href that Frappe's DesktopIcon already put on the DOM <a>
+		var dom_icon = document.querySelector(
+			'.desktop-container > .icons-container .desktop-icon[data-id="' + icon.label + '"]'
+		);
+		if (!dom_icon) {
+			// Also check inside sub-sidebar's source (the modal icons, or any)
+			dom_icon = document.querySelector('.desktop-icon[data-id="' + icon.label + '"]');
+		}
+		if (dom_icon) {
+			var href = dom_icon.getAttribute("href");
+			if (href && href !== "#" && href !== "javascript:void(0)") return href;
+		}
+
+		// 4. Last resort — try common patterns
+		if (icon.link && icon.link_type === "DocType") {
+			return "/app/" + frappe.router.slug(icon.link);
+		}
+		if (icon.link && icon.link_type === "Page") {
+			return "/app/" + icon.link.toLowerCase().replace(/ /g, "-");
+		}
+		if (icon.link && icon.link_type === "Report") {
+			return "/app/query-report/" + encodeURIComponent(icon.link);
+		}
+
+		// 5. Generate from the workspace sidebar lookup by label
+		//    (for child icons whose parent was already resolved)
+		var child_sidebar = sidebar_map[(icon.label || "").toLowerCase()];
+		if (child_sidebar && child_sidebar.items) {
+			for (var j = 0; j < child_sidebar.items.length; j++) {
+				if (child_sidebar.items[j].type === "Link") {
+					try {
+						return frappe.utils.generate_route({
+							type: child_sidebar.items[j].link_type,
+							name: child_sidebar.items[j].link_to,
+							route_options: { sidebar: icon.label },
+						});
+					} catch (ex2) { /* continue */ }
+				}
+			}
+		}
+
+		return "";
 	}
 
-	/* Show child icons in the second sidebar */
+	/* ── Show child icons in the second sidebar ── */
 	function show_sub_sidebar(parent_label, children) {
 		var desk_container = document.querySelector(".desktop-container");
 		if (!desk_container) return;
@@ -781,11 +879,9 @@
 
 		var list_html = '<ul class="ct-desk-sub-sidebar-list">';
 		children.forEach(function (child) {
-			console.log("child ==== ",child)
-			// var route = get_icon_route(child);
-			var icon_html = "";
+			var route = get_icon_route(child);
 
-			// Try to get an image for the child icon
+			// Icon image
 			var img_src = "";
 			if (typeof frappe.utils.get_desktop_icon === "function") {
 				img_src = frappe.utils.get_desktop_icon(child.label, frappe.boot.desktop_icon_style) || "";
@@ -794,25 +890,53 @@
 				img_src = child.logo_url || child.icon_image || "";
 			}
 
+			var icon_html;
 			if (img_src) {
 				icon_html = '<div class="ct-sub-icon"><img src="' + frappe.utils.escape_html(img_src)
 					+ '" alt="' + frappe.utils.escape_html(child.label) + '"></div>';
 			} else {
-				// Fallback: use a colored circle with the first letter
 				var bg = child.bg_color || "#94a3b8";
 				var letter = (child.label || "?")[0].toUpperCase();
 				icon_html = '<div class="ct-sub-icon" style="background:' + bg + ';color:#fff;font-weight:600;font-size:14px;">'
 					+ letter + '</div>';
 			}
 
-			list_html += '<li><a href="' + frappe.utils.escape_html(route) + '">'
-				+ icon_html
-				+ '<span class="ct-sub-label">' + frappe.utils.escape_html(child.label) + '</span>'
-				+ '</a></li>';
+			// If route is empty, make a click handler that uses frappe.set_route
+			if (route) {
+				list_html += '<li><a href="' + frappe.utils.escape_html(route) + '">'
+					+ icon_html
+					+ '<span class="ct-sub-label">' + frappe.utils.escape_html(child.label) + '</span>'
+					+ '</a></li>';
+			} else {
+				// Use data-attribute and a click handler as fallback
+				list_html += '<li><a href="#" class="ct-sub-no-route" data-label="'
+					+ frappe.utils.escape_html(child.label) + '">'
+					+ icon_html
+					+ '<span class="ct-sub-label">' + frappe.utils.escape_html(child.label) + '</span>'
+					+ '</a></li>';
+			}
 		});
 		list_html += '</ul>';
 
 		sub.innerHTML = header_html + list_html;
+
+		// Fallback click handler for items without resolved routes
+		sub.querySelectorAll(".ct-sub-no-route").forEach(function (a) {
+			a.addEventListener("click", function (ev) {
+				ev.preventDefault();
+				var label = a.getAttribute("data-label");
+				// Try to find the DOM icon and simulate its click (which Frappe already set up)
+				var dom_icon = document.querySelector(
+					'.desktop-icon[data-id="' + label + '"]'
+				);
+				if (dom_icon && dom_icon.getAttribute("href")) {
+					window.location.href = dom_icon.getAttribute("href");
+				} else {
+					// Last resort: try standard workspace route
+					frappe.set_route("app", frappe.router.slug(label));
+				}
+			});
+		});
 
 		// Insert after .icons-container but before .ct-desk-main-panel
 		var main_panel = desk_container.querySelector(".ct-desk-main-panel");
@@ -823,28 +947,25 @@
 		}
 	}
 
-	/* Intercept folder/app icon clicks to show second sidebar instead of modal */
+	/* ── Intercept folder/app icon clicks → second sidebar instead of modal ── */
 	function install_folder_click_handler() {
 		var desk_container = document.querySelector(".desktop-container");
 		if (!desk_container) return;
 
-		// Use event delegation on the icons-container
 		var icons_container = desk_container.querySelector(":scope > .icons-container");
 		if (!icons_container) return;
 
-		// We use a capturing listener to intercept BEFORE Frappe's own click handler
+		// Capturing listener fires BEFORE Frappe's own click handler
 		icons_container.addEventListener("click", function (e) {
-			// Only active when ct-desk class is on body
 			if (!document.body.classList.contains("ct-desk")) return;
 
-			// Find the .desktop-icon ancestor
 			var icon_el = e.target.closest(".desktop-icon");
 			if (!icon_el) return;
 
 			var app_id = (icon_el.getAttribute("data-id") || "").trim();
 			if (!app_id) return;
 
-			// Find the icon data
+			// Find the icon data object from frappe.boot.desktop_icons
 			var icon_data = null;
 			if (frappe.boot && frappe.boot.desktop_icons) {
 				for (var i = 0; i < frappe.boot.desktop_icons.length; i++) {
@@ -854,44 +975,62 @@
 					}
 				}
 			}
-
 			if (!icon_data) return;
 
-			// Check if this icon has children (is a folder/app with sub-items)
+			// Check if this icon has children (folder/app with sub-items)
 			var children = get_child_icons_for(app_id);
+
 			if (children.length === 0) {
-				// Not a folder — let the standard navigation happen, but hide sub-sidebar
+				// ── Not a folder: handle navigation ourselves ──
+				// We intercept because Frappe might show the "not configured" alert
+				// if label doesn't match workspace_sidebar_item key.
+				e.preventDefault();
+				e.stopPropagation();
+				e.stopImmediatePropagation();
+
+				// Hide the sub-sidebar
 				var existing_sub = desk_container.querySelector(".ct-desk-sub-sidebar");
 				if (existing_sub) existing_sub.remove();
-				// Remove old active state
 				icons_container.querySelectorAll(".desktop-icon.ct-desk-active").forEach(function (el) {
 					el.classList.remove("ct-desk-active");
 				});
-				return; // Don't prevent default — let it navigate
+
+				// Resolve the route properly
+				var route = get_icon_route(icon_data);
+				if (route) {
+					// Use frappe.set_route for internal routes, window.open for external
+					if (route.indexOf("http") === 0 && route.indexOf(window.location.origin) !== 0) {
+						window.open(route, "_blank");
+					} else {
+						window.location.href = route;
+					}
+				} else {
+					// Absolute last resort: try the workspace route by label slug
+					frappe.set_route("app", frappe.router.slug(app_id));
+				}
+				return;
 			}
 
-			// It's a folder: prevent modal, show sub-sidebar instead
+			// ── Folder: prevent modal, show sub-sidebar ──
 			e.preventDefault();
 			e.stopPropagation();
 			e.stopImmediatePropagation();
 
-			// Close any open modal (in case Frappe already opened one)
-			if (typeof frappe !== "undefined" && frappe.desktop_utils && frappe.desktop_utils.modal) {
+			// Close any modal Frappe might have opened
+			if (frappe.desktop_utils && frappe.desktop_utils.modal) {
 				frappe.desktop_utils.close_desktop_modal();
 			}
-			// Also force-hide any bootstrap modal
 			try { $(".desktop-modal").modal("hide"); } catch (ex) { /* ignore */ }
 
-			// Highlight the active icon
+			// Highlight active icon
 			icons_container.querySelectorAll(".desktop-icon.ct-desk-active").forEach(function (el) {
 				el.classList.remove("ct-desk-active");
 			});
 			icon_el.classList.add("ct-desk-active");
 
-			// Show children in the second sidebar
 			show_sub_sidebar(app_id, children);
 
-		}, true); // ← capturing phase to fire before Frappe's handler
+		}, true);
 	}
 
 	function schedule_icon_scan() {
