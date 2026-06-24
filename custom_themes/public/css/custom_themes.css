@@ -647,9 +647,9 @@ body.custom-themes-active.ct-desk .desktop-container::after {
 
 /* ── PRIMARY SIDEBAR (icons-container = first sidebar) ── */
 body.custom-themes-active.ct-desk .desktop-container > .icons-container {
-	width: 72px !important;
-	min-width: 72px !important;
-	max-width: 72px !important;
+	width: 150px !important;
+	min-width: 150px !important;
+	max-width: 150px !important;
 	margin-top: 0 !important;
 	padding: 12px 0 !important;
 	background: linear-gradient(180deg, #1e3a5f 0%, #0f2440 100%) !important;
@@ -666,7 +666,7 @@ body.custom-themes-active.ct-desk .desktop-container > .icons-container > .icons
 	display: flex !important;
 	flex-direction: column !important;
 	align-items: center !important;
-	gap: 4px !important;
+	gap: 5px !important;
 	padding: 0 6px !important;
 	grid-template-columns: unset !important;
 	grid-template-rows: unset !important;
@@ -679,8 +679,8 @@ body.custom-themes-active.ct-desk .desktop-container > .icons-container > .icons
 	align-items: center !important;
 	justify-content: center !important;
 	gap: 4px !important;
-	width: 56px !important;
-	height: 56px !important;
+	width: 125px !important;
+	height: 65px !important;
 	padding: 6px 4px !important;
 	border-radius: 12px !important;
 	border: none !important;
@@ -740,12 +740,12 @@ body.custom-themes-active.ct-desk .desktop-container > .icons-container .icon-ca
 
 body.custom-themes-active.ct-desk .desktop-container > .icons-container .icon-title {
 	color: rgba(255,255,255,0.8) !important;
-	font-size: 9px !important;
+	font-size: 12px !important;
 	font-weight: 500 !important;
 	white-space: nowrap !important;
 	overflow: hidden !important;
 	text-overflow: ellipsis !important;
-	max-width: 52px !important;
+	max-width: 100px !important;
 	line-height: 1.1 !important;
 }
 
@@ -813,6 +813,16 @@ body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a {
 
 body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a:hover {
 	background: #e2e8f0 !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a.ct-sub-active {
+	background: #dbeafe !important;
+	color: #1e40af !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a.ct-sub-active .ct-sub-label {
+	color: #1e40af !important;
+	font-weight: 600 !important;
 }
 
 body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a .ct-sub-icon {
