@@ -595,7 +595,7 @@
 	function apply_desk_icon_overrides(overrides) {
 		if (!overrides || !overrides.length) { restore_desk_overrides(); return; }
 
-		// Build map: app_name → custom_icon url
+		// Build map: app_name → custom_icon url (case-insensitive)
 		var desk_map = {};
 		overrides.forEach(function (o) {
 			var name = (o.app_name || "").trim();
@@ -608,26 +608,65 @@
 		});
 
 		function do_replace() {
-			var desk_icons = document.querySelectorAll(".desktop-icon");
-			desk_icons.forEach(function (link) {
+			// Only target TOP-LEVEL desktop icons in the main icons-container
+			// (not nested child icons inside folder thumbnails)
+			var top_icons = document.querySelectorAll(
+				".desktop-container > .icons-container > .icons > .desktop-icon"
+			);
+			top_icons.forEach(function (link) {
 				var app_id = (link.getAttribute("data-id") || "").trim();
 				if (!app_id) return;
 
 				var override_url = desk_map[app_id] || desk_map[app_id.toLowerCase()];
-				var app_img = link.querySelector("img.app-icon");
-				if (!app_img) return;
+				if (!override_url) {
+					// No override for this icon — restore if previously overridden
+					restore_single_desk_icon(link);
+					return;
+				}
 
-				if (override_url) {
+				// Find the .icon-container (direct child of .desktop-icon)
+				var icon_container = link.querySelector(":scope > .icon-container");
+				if (!icon_container) return;
+
+				var is_folder = icon_container.classList.contains("folder-icon");
+
+				if (is_folder) {
+					// ── Folder icon: no <img> exists by default ──
+					// Check if we already injected one
+					var injected_img = icon_container.querySelector("img.app-icon.ct-desk-ov-injected");
+					if (injected_img) {
+						// Already injected — just update src if changed
+						if (injected_img.src.indexOf(override_url) === -1) {
+							injected_img.setAttribute("src", override_url);
+						}
+						return;
+					}
+
+					// Hide the folder thumbnail grid
+					var thumb_container = icon_container.querySelector(".icons-container");
+					if (thumb_container) {
+						thumb_container.dataset.ctDeskOvHidden = "1";
+						thumb_container.style.display = "none";
+					}
+
+					// Inject a new <img> into the icon-container
+					var new_img = document.createElement("img");
+					new_img.className = "app-icon ct-desk-ov-injected ct-desk-ov-replaced";
+					new_img.setAttribute("src", override_url);
+					new_img.setAttribute("alt", app_id);
+					icon_container.insertBefore(new_img, icon_container.firstChild);
+
+				} else {
+					// ── Normal icon: has an existing <img.app-icon> ──
+					var app_img = icon_container.querySelector("img.app-icon");
+					if (!app_img) return;
+
 					if (app_img.dataset.ctDeskOvOriginal && app_img.src.indexOf(override_url) !== -1) return;
 					if (!app_img.dataset.ctDeskOvOriginal) {
 						app_img.dataset.ctDeskOvOriginal = app_img.getAttribute("src");
 					}
 					app_img.setAttribute("src", override_url);
 					app_img.classList.add("ct-desk-ov-replaced");
-				} else if (app_img.classList.contains("ct-desk-ov-replaced") && app_img.dataset.ctDeskOvOriginal) {
-					app_img.setAttribute("src", app_img.dataset.ctDeskOvOriginal);
-					delete app_img.dataset.ctDeskOvOriginal;
-					app_img.classList.remove("ct-desk-ov-replaced");
 				}
 			});
 		}
@@ -637,7 +676,44 @@
 		setTimeout(do_replace, 1500);
 	}
 
+	/* Restore a single icon to its original state */
+	function restore_single_desk_icon(link) {
+		var icon_container = link.querySelector(":scope > .icon-container");
+		if (!icon_container) return;
+
+		// Remove injected images (folder icons)
+		var injected = icon_container.querySelectorAll("img.ct-desk-ov-injected");
+		injected.forEach(function (img) { img.remove(); });
+
+		// Restore hidden folder thumbnail
+		var thumb = icon_container.querySelector(".icons-container[data-ct-desk-ov-hidden]");
+		if (thumb) {
+			thumb.style.display = "";
+			delete thumb.dataset.ctDeskOvHidden;
+		}
+
+		// Restore original src on normal icons
+		var replaced = icon_container.querySelectorAll("img.ct-desk-ov-replaced");
+		replaced.forEach(function (img) {
+			if (img.dataset.ctDeskOvOriginal) {
+				img.setAttribute("src", img.dataset.ctDeskOvOriginal);
+				delete img.dataset.ctDeskOvOriginal;
+			}
+			img.classList.remove("ct-desk-ov-replaced");
+		});
+	}
+
 	function restore_desk_overrides() {
+		// Remove all injected folder icon images
+		document.querySelectorAll("img.ct-desk-ov-injected").forEach(function (img) {
+			img.remove();
+		});
+		// Restore hidden folder thumbnails
+		document.querySelectorAll(".icons-container[data-ct-desk-ov-hidden]").forEach(function (el) {
+			el.style.display = "";
+			delete el.dataset.ctDeskOvHidden;
+		});
+		// Restore original src on normal icons
 		document.querySelectorAll("img.ct-desk-ov-replaced").forEach(function (img) {
 			if (img.dataset.ctDeskOvOriginal) {
 				img.setAttribute("src", img.dataset.ctDeskOvOriginal);
