@@ -1060,7 +1060,7 @@
 			var children = get_child_icons_for(app_id);
 
 			if (children.length === 0) {
-				// ── Not a folder: open in new tab ──
+				// ── Not a folder: load in main panel ──
 				e.preventDefault();
 				e.stopPropagation();
 				e.stopImmediatePropagation();
@@ -1075,13 +1075,8 @@
 				});
 				icon_el.classList.add("ct-desk-active");
 
-				// Resolve and open in new tab
-				var route = get_icon_route(icon_data);
-				if (route) {
-					window.open(route, "_blank");
-				} else {
-					window.open("/app/" + frappe.router.slug(app_id), "_blank");
-				}
+				// Load in main panel iframe
+				load_workspace_in_main_panel(app_id);
 				return;
 			}
 
@@ -1108,6 +1103,142 @@
 			load_workspace_in_main_panel(app_id);
 
 		}, true);
+	}
+
+	/* ── Load module content into the main panel via iframe ── */
+	function load_workspace_in_main_panel(module_label) {
+		var main_panel = document.querySelector(".ct-desk-main-panel");
+		if (!main_panel) return;
+
+		// Strategy: find any usable URL for this module
+		var url = "";
+
+		// 1. Try resolving the module icon's own route
+		var icon_data = null;
+		if (frappe.boot && frappe.boot.desktop_icons) {
+			for (var i = 0; i < frappe.boot.desktop_icons.length; i++) {
+				if (frappe.boot.desktop_icons[i].label === module_label) {
+					icon_data = frappe.boot.desktop_icons[i];
+					break;
+				}
+			}
+		}
+		if (icon_data) {
+			url = get_icon_route(icon_data);
+		}
+
+		// 2. If no route from icon itself, use the first child icon's route
+		if (!url) {
+			var children = get_child_icons_for(module_label);
+			for (var j = 0; j < children.length; j++) {
+				url = get_icon_route(children[j]);
+				if (url) break;
+			}
+		}
+
+		// 3. Try reading href from the first child's DOM element
+		if (!url) {
+			var child_dom = document.querySelector(
+				'.desktop-icon[data-id="' + module_label + '"] .folder-icon .desktop-icon[href]'
+			);
+			if (child_dom) {
+				url = child_dom.getAttribute("href");
+			}
+		}
+
+		if (!url) {
+			main_panel.innerHTML = '<div class="ct-desk-welcome">'
+				+ '<h2>' + frappe.utils.escape_html(module_label) + '</h2>'
+				+ '<p>No page found for this module.</p></div>';
+			return;
+		}
+
+		// Show loading spinner
+		main_panel.innerHTML = '<div class="ct-desk-workspace-loading">'
+			+ '<div class="ct-desk-workspace-spinner"></div>'
+			+ '<p>Loading ' + frappe.utils.escape_html(module_label) + '...</p></div>';
+
+		// Load in iframe
+		var iframe = document.createElement("iframe");
+		iframe.className = "ct-desk-workspace-iframe";
+		iframe.setAttribute("frameborder", "0");
+		iframe.setAttribute("src", url);
+		iframe.setAttribute("title", module_label);
+
+		iframe.onload = function () {
+			try {
+				// Only hide the site-level navbar and sidebar
+				// KEEP the page-head toolbar (Save, Amend, Menu, etc.)
+				var idoc = iframe.contentDocument || iframe.contentWindow.document;
+				var style = idoc.createElement("style");
+				style.textContent = ''
+					+ 'header.navbar, .desk-sidebar, '
+					+ '.sidebar-menu, '
+					+ '#page-desktop, .desktop-wrapper, '
+					+ 'footer, .desk-sidebar-toggle, '
+					+ '.workspace-sidebar-skeleton '
+					+ '{ display: none !important; }'
+					+ '.page-container { padding-top: 0 !important; }'
+					+ '.container { max-width: 100% !important; }'
+					+ 'body { background: #ffffff !important; overflow-x: hidden !important; }'
+					+ '.page-body { margin-top: 0 !important; }'
+					+ '.main-section { margin-top: 0 !important; }';
+				idoc.head.appendChild(style);
+			} catch (ex) { /* same-origin should work */ }
+		};
+
+		main_panel.innerHTML = '';
+		main_panel.appendChild(iframe);
+	}
+
+	/* Reset main panel to welcome screen */
+	function reset_main_panel_to_welcome() {
+		var main_panel = document.querySelector(".ct-desk-main-panel");
+		if (!main_panel) return;
+
+		var user_full = (typeof frappe !== "undefined" && frappe.session)
+			? (frappe.session.user_fullname || frappe.session.user || "User")
+			: "User";
+		var first_name = user_full.split(" ")[0];
+		var hour = new Date().getHours();
+		var greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+		var recent_html = "";
+		try {
+			var recent_routes = (frappe.boot.user && frappe.boot.user.recent) || [];
+			var raw = typeof recent_routes === "string" ? JSON.parse(recent_routes) : recent_routes;
+			var parsed = [];
+			if (Array.isArray(raw)) {
+				for (var i = 0; i < Math.min(raw.length, 8); i++) {
+					var item = raw[i];
+					if (Array.isArray(item) && item.length >= 2) {
+						parsed.push({ doctype: item[0], name: item[1] });
+					}
+				}
+			}
+			if (parsed.length) {
+				recent_html = '<div class="ct-desk-recent"><h3>Recent Items</h3><ul>';
+				parsed.forEach(function (r) {
+					var href = "/app/" + frappe.router.slug(r.doctype) + "/" + encodeURIComponent(r.name);
+					recent_html += '<li><a href="' + href + '" target="_blank">'
+						+ '<span class="ct-desk-recent-type">' + frappe.utils.escape_html(r.doctype) + '</span>'
+						+ '<span class="ct-desk-recent-name">' + frappe.utils.escape_html(r.name) + '</span>'
+						+ '</a></li>';
+				});
+				recent_html += '</ul></div>';
+			}
+		} catch (e) { /* ignore */ }
+
+		var shortcuts_html = '<div class="ct-desk-shortcuts"><h3>Quick Actions</h3><div class="ct-desk-shortcut-grid">'
+			+ '<div class="ct-desk-shortcut-card" onclick="frappe.new_doc()"><span class="ct-desk-shortcut-icon">\u{1F4C4}</span><span class="ct-desk-shortcut-label">New Document</span></div>'
+			+ '<div class="ct-desk-shortcut-card" onclick="frappe.searchdialog &amp;&amp; frappe.searchdialog.show()"><span class="ct-desk-shortcut-icon">\u{1F50D}</span><span class="ct-desk-shortcut-label">Search</span></div>'
+			+ '<div class="ct-desk-shortcut-card" onclick="frappe.set_route(\'Form\', \'Custom Theme Settings\')"><span class="ct-desk-shortcut-icon">⚙️</span><span class="ct-desk-shortcut-label">Settings</span></div>'
+			+ '</div></div>';
+
+		main_panel.innerHTML = '<div class="ct-desk-welcome">'
+			+ '<h2>' + greeting + ', ' + frappe.utils.escape_html(first_name) + '!</h2>'
+			+ '<p>Welcome to your workspace</p></div>'
+			+ shortcuts_html + recent_html;
 	}
 
 	function schedule_icon_scan() {
