@@ -863,8 +863,15 @@ body.custom-themes-active.ct-desk .ct-desk-main-panel {
 	flex: 1 !important;
 	background: #ffffff !important;
 	min-height: calc(100vh - 52px) !important;
-	padding: 40px 48px !important;
+	/* padding: 40px 48px !important; */
+	padding: 0 !important;
 	overflow-y: auto !important;
+}
+
+/* Remove padding when iframe is loaded */
+body.custom-themes-active.ct-desk .ct-desk-main-panel:has(.ct-desk-workspace-iframe) {
+	padding: 0 !important;
+	overflow: hidden !important;
 }
 
 body.custom-themes-active.ct-desk .ct-desk-welcome h2 {
@@ -964,6 +971,39 @@ body.custom-themes-active.ct-desk .ct-desk-recent-type {
 body.custom-themes-active.ct-desk .ct-desk-recent-name {
 	font-size: 14px !important;
 	color: #334155 !important;
+}
+
+/* Workspace iframe in main panel */
+body.custom-themes-active.ct-desk .ct-desk-workspace-iframe {
+	width: 100% !important;
+	height: 100% !important;
+	min-height: calc(100vh - 52px) !important;
+	border: none !important;
+	display: block !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-workspace-loading {
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: center !important;
+	justify-content: center !important;
+	min-height: 300px !important;
+	gap: 16px !important;
+	color: #64748b !important;
+	font-size: 15px !important;
+}
+
+body.custom-themes-active.ct-desk .ct-desk-workspace-spinner {
+	width: 32px !important;
+	height: 32px !important;
+	border: 3px solid #e2e8f0 !important;
+	border-top-color: #3b82f6 !important;
+	border-radius: 50% !important;
+	animation: ct-spin 0.7s linear infinite !important;
+}
+
+@keyframes ct-spin {
+	to { transform: rotate(360deg); }
 }
 
 /* Hide page indicators & arrows */

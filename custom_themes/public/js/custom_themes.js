@@ -732,59 +732,106 @@
 
 	var _ct_desk_folder_handler_installed = false;
 
+	function get_welcome_dashboard_html() {
+		var user_full = (typeof frappe !== "undefined" && frappe.session)
+			? (frappe.session.user_fullname || frappe.session.user || "User")
+			: "User";
+		return ''
+			+ '<style>'
+			+ '.ct-welcome-dash {'
+			+ '  width:100%; min-height:calc(100vh - 52px);'
+			+ '  display:flex; flex-direction:column; justify-content:center; align-items:center;'
+			+ '  text-align:center; padding:60px 40px; box-sizing:border-box;'
+			+ '  overflow:hidden; position:relative;'
+			+ '  background:linear-gradient(-45deg, #1e3a5f,rgb(28, 61, 113),rgb(223, 235, 247), #dbeafe, #94a3b8,rgb(210, 228, 255), #1e3a5f);'
+			+ '  background-size:600% 600%;'
+			+ '  animation:ctWelcomeGrad 20s ease infinite;'
+			+ '}'
+			+ '@keyframes ctWelcomeGrad {'
+			+ '  0%   { background-position:0% 50%; }'
+			+ '  50%  { background-position:100% 50%; }'
+			+ '  100% { background-position:0% 50%; }'
+			+ '}'
+			+ '.ct-welcome-dash h1 {'
+			+ '  margin:0 0 8px; font-size:36px; font-weight:800; color:#0f2440;'
+			+ '  text-shadow:2px 3px 1px rgba(255,255,255,0.6);'
+			+ '}'
+			+ '.ct-welcome-dash .ct-welcome-sub {'
+			+ '  font-size:16px; color:#334155; margin:0 0 48px; font-weight:400;'
+			+ '  text-shadow:1px 2px 1px rgba(255,255,255,0.4);'
+			+ '}'
+			+ '.ct-welcome-metrics {'
+			+ '  display:flex; gap:20px; flex-wrap:wrap; justify-content:center; margin-bottom:48px;'
+			+ '}'
+			+ '.ct-welcome-metric {'
+			+ '  background:rgba(255,255,255,0.85); backdrop-filter:blur(12px);'
+			+ '  border:1px solid rgba(255,255,255,0.5); border-radius:16px;'
+			+ '  padding:28px 36px; min-width:180px;'
+			+ '  box-shadow:0 8px 32px rgba(15,36,64,0.08);'
+			+ '  transition:transform 0.2s ease, box-shadow 0.2s ease;'
+			+ '}'
+			+ '.ct-welcome-metric:hover {'
+			+ '  transform:translateY(-4px);'
+			+ '  box-shadow:0 12px 40px rgba(15,36,64,0.14);'
+			+ '}'
+			+ '.ct-welcome-metric .ct-metric-icon {'
+			+ '  font-size:28px; margin-bottom:10px;'
+			+ '}'
+			+ '.ct-welcome-metric .ct-metric-label {'
+			+ '  font-size:14px; font-weight:600; color:#1e3a5f; text-transform:uppercase;'
+			+ '  letter-spacing:0.04em;'
+			+ '}'
+			+ '.ct-welcome-metric .ct-metric-desc {'
+			+ '  font-size:12px; color:#64748b; margin-top:4px;'
+			+ '}'
+			+ '.ct-welcome-visit {'
+			+ '  display:inline-flex; align-items:center; gap:8px;'
+			+ '  padding:14px 40px; border:2px solid #1e3a5f; border-radius:50px;'
+			+ '  color:#1e3a5f; text-decoration:none; font-size:15px; font-weight:600;'
+			+ '  background:rgba(255,255,255,0.75); backdrop-filter:blur(8px);'
+			+ '  transition:all 0.3s ease;'
+			+ '}'
+			+ '.ct-welcome-visit:hover {'
+			+ '  background:#1e3a5f; color:#ffffff;'
+			+ '  transform:translateY(-2px);'
+			+ '  box-shadow:0 10px 30px rgba(30,58,95,0.3);'
+			+ '}'
+			+ '</style>'
+			+ '<div class="ct-welcome-dash">'
+			+ '  <h1>Welcome, ' + frappe.utils.escape_html(user_full) + '!</h1>'
+			+ '  <p class="ct-welcome-sub">Your business command center - everything at a glance</p>'
+			+ '  <div class="ct-welcome-metrics">'
+			+ '    <div class="ct-welcome-metric">'
+			+ '      <div class="ct-metric-icon">\u{1F4CA}</div>'
+			+ '      <div class="ct-metric-label">Sales & Revenue</div>'
+			+ '      <div class="ct-metric-desc">Track orders, invoices & growth</div>'
+			+ '    </div>'
+			+ '    <div class="ct-welcome-metric">'
+			+ '      <div class="ct-metric-icon">\u{1F4E6}</div>'
+			+ '      <div class="ct-metric-label">Inventory & Stock</div>'
+			+ '      <div class="ct-metric-desc">Monitor stock levels & warehouses</div>'
+			+ '    </div>'
+			+ '    <div class="ct-welcome-metric">'
+			+ '      <div class="ct-metric-icon">\u{1F4B0}</div>'
+			+ '      <div class="ct-metric-label">Accounts & Finance</div>'
+			+ '      <div class="ct-metric-desc">Manage payments, ledgers & reports</div>'
+			+ '    </div>'
+			+ '  </div>'
+			+ '  <a class="ct-welcome-visit" href="https://sieplinnovations.com/" target="_blank">'
+			+ '    Visit Website \u{2197}'
+			+ '  </a>'
+			+ '</div>';
+	}
+
 	function inject_desk_welcome_panel() {
 		var desk_container = document.querySelector(".desktop-container");
 		if (!desk_container) return;
 
 		// Inject main content panel if missing
 		if (!desk_container.querySelector(".ct-desk-main-panel")) {
-			var user_full = (typeof frappe !== "undefined" && frappe.session)
-				? (frappe.session.user_fullname || frappe.session.user || "User")
-				: "User";
-			var first_name = user_full.split(" ")[0];
-			var hour = new Date().getHours();
-			var greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-
-			// Recent items
-			var recent_html = "";
-			try {
-				var recent_routes = (frappe.boot.user && frappe.boot.user.recent) || [];
-				var raw = typeof recent_routes === "string" ? JSON.parse(recent_routes) : recent_routes;
-				var parsed = [];
-				if (Array.isArray(raw)) {
-					for (var i = 0; i < Math.min(raw.length, 8); i++) {
-						var item = raw[i];
-						if (Array.isArray(item) && item.length >= 2) {
-							parsed.push({ doctype: item[0], name: item[1] });
-						}
-					}
-				}
-				if (parsed.length) {
-					recent_html = '<div class="ct-desk-recent"><h3>Recent Items</h3><ul>';
-					parsed.forEach(function (r) {
-						var href = "/app/" + frappe.router.slug(r.doctype) + "/" + encodeURIComponent(r.name);
-						recent_html += '<li><a href="' + href + '">'
-							+ '<span class="ct-desk-recent-type">' + frappe.utils.escape_html(r.doctype) + '</span>'
-							+ '<span class="ct-desk-recent-name">' + frappe.utils.escape_html(r.name) + '</span>'
-							+ '</a></li>';
-					});
-					recent_html += '</ul></div>';
-				}
-			} catch (e) { /* ignore */ }
-
-			// Shortcuts
-			var shortcuts_html = '<div class="ct-desk-shortcuts"><h3>Quick Actions</h3><div class="ct-desk-shortcut-grid">'
-				+ '<div class="ct-desk-shortcut-card" onclick="frappe.new_doc()"><span class="ct-desk-shortcut-icon">\u{1F4C4}</span><span class="ct-desk-shortcut-label">New Document</span></div>'
-				+ '<div class="ct-desk-shortcut-card" onclick="frappe.searchdialog &amp;&amp; frappe.searchdialog.show()"><span class="ct-desk-shortcut-icon">\u{1F50D}</span><span class="ct-desk-shortcut-label">Search</span></div>'
-				+ '<div class="ct-desk-shortcut-card" onclick="frappe.set_route(\'Form\', \'Custom Theme Settings\')"><span class="ct-desk-shortcut-icon">⚙️</span><span class="ct-desk-shortcut-label">Settings</span></div>'
-				+ '</div></div>';
-
 			var panel = document.createElement("div");
 			panel.className = "ct-desk-main-panel";
-			panel.innerHTML = '<div class="ct-desk-welcome">'
-				+ '<h2>' + greeting + ', ' + frappe.utils.escape_html(first_name) + '!</h2>'
-				+ '<p>Welcome to your workspace</p></div>'
-				+ shortcuts_html + recent_html;
+			panel.innerHTML = get_welcome_dashboard_html();
 			desk_container.appendChild(panel);
 		}
 
@@ -1060,7 +1107,7 @@
 			var children = get_child_icons_for(app_id);
 
 			if (children.length === 0) {
-				// ── Not a folder: open in new tab ──
+				// ── Not a folder: load in main panel ──
 				e.preventDefault();
 				e.stopPropagation();
 				e.stopImmediatePropagation();
@@ -1075,13 +1122,8 @@
 				});
 				icon_el.classList.add("ct-desk-active");
 
-				// Resolve and open in new tab
-				var route = get_icon_route(icon_data);
-				if (route) {
-					window.open(route, "_blank");
-				} else {
-					window.open("/app/" + frappe.router.slug(app_id), "_blank");
-				}
+				// Load in main panel iframe
+				load_workspace_in_main_panel(app_id);
 				return;
 			}
 
@@ -1108,6 +1150,102 @@
 			load_workspace_in_main_panel(app_id);
 
 		}, true);
+	}
+
+	/* ── Load module content into the main panel via iframe ── */
+	function load_workspace_in_main_panel(module_label) {
+		var main_panel = document.querySelector(".ct-desk-main-panel");
+		if (!main_panel) return;
+
+		// Strategy: find any usable URL for this module
+		var url = "";
+
+		// 1. Try resolving the module icon's own route
+		var icon_data = null;
+		if (frappe.boot && frappe.boot.desktop_icons) {
+			for (var i = 0; i < frappe.boot.desktop_icons.length; i++) {
+				if (frappe.boot.desktop_icons[i].label === module_label) {
+					icon_data = frappe.boot.desktop_icons[i];
+					break;
+				}
+			}
+		}
+		if (icon_data) {
+			url = get_icon_route(icon_data);
+		}
+
+		// 2. If no route from icon itself, use the first child icon's route
+		if (!url) {
+			var children = get_child_icons_for(module_label);
+			for (var j = 0; j < children.length; j++) {
+				url = get_icon_route(children[j]);
+				if (url) break;
+			}
+		}
+
+		// 3. Try reading href from the first child's DOM element
+		if (!url) {
+			var child_dom = document.querySelector(
+				'.desktop-icon[data-id="' + module_label + '"] .folder-icon .desktop-icon[href]'
+			);
+			if (child_dom) {
+				url = child_dom.getAttribute("href");
+			}
+		}
+
+		if (!url) {
+			main_panel.innerHTML = '<div class="ct-desk-welcome">'
+				+ '<h2>' + frappe.utils.escape_html(module_label) + '</h2>'
+				+ '<p>No page found for this module.</p></div>';
+			return;
+		}
+
+		// Show loading spinner
+		main_panel.innerHTML = '<div class="ct-desk-workspace-loading">'
+			+ '<div class="ct-desk-workspace-spinner"></div>'
+			+ '<p>Loading ' + frappe.utils.escape_html(module_label) + '...</p></div>';
+
+		// Load in iframe
+		var iframe = document.createElement("iframe");
+		iframe.className = "ct-desk-workspace-iframe";
+		iframe.setAttribute("frameborder", "0");
+		iframe.setAttribute("src", url);
+		iframe.setAttribute("title", module_label);
+
+		iframe.onload = function () {
+			try {
+				// Only hide the site-level navbar and sidebar
+				// KEEP the page-head toolbar (Save, Amend, Menu, etc.)
+				var idoc = iframe.contentDocument || iframe.contentWindow.document;
+				var style = idoc.createElement("style");
+				style.textContent = ''
+					+ 'header.navbar, .desk-sidebar, '
+					+ '.sidebar-menu, '
+					+ '#page-desktop, .desktop-wrapper, '
+					+ 'footer, .desk-sidebar-toggle, '
+					+ '.workspace-sidebar-skeleton '
+					+ '{ display: none !important; }'
+					+ '.page-container { padding-top: 0 !important; }'
+					+ '.container { max-width: 100% !important; }'
+					+ 'body { background: #ffffff !important; overflow-x: hidden !important; }'
+					+ '.page-body { margin-top: 0 !important; }'
+					+ '.main-section { margin-top: 0 !important; }';
+				idoc.head.appendChild(style);
+			} catch (ex) { /* same-origin should work */ }
+		};
+
+		main_panel.innerHTML = '';
+		// main_panel.appendChild(iframe);
+
+		// Show welcome dashboard (uncomment line above & comment line below to switch to iframe)
+		main_panel.innerHTML = get_welcome_dashboard_html();
+	}
+
+	/* Reset main panel to welcome screen */
+	function reset_main_panel_to_welcome() {
+		var main_panel = document.querySelector(".ct-desk-main-panel");
+		if (!main_panel) return;
+		main_panel.innerHTML = get_welcome_dashboard_html();
 	}
 
 	function schedule_icon_scan() {
