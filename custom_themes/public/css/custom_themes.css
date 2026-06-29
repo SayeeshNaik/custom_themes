@@ -861,7 +861,7 @@ body.custom-themes-active.ct-desk .ct-desk-sub-sidebar-list li a .ct-sub-label {
 /* ── MAIN CONTENT PANEL ── */
 body.custom-themes-active.ct-desk .ct-desk-main-panel {
 	flex: 1 !important;
-	background: #ffffff !important;
+	background: linear-gradient(159deg, #122e53 0%, #ced4db 150%) !important;
 	min-height: calc(100vh - 52px) !important;
 	padding: 40px 48px !important;
 	overflow-y: auto !important;
@@ -874,16 +874,17 @@ body.custom-themes-active.ct-desk .ct-desk-main-panel:has(.ct-desk-workspace-ifr
 }
 
 body.custom-themes-active.ct-desk .ct-desk-welcome h2 {
-	font-size: 28px !important;
+	font-size: 35px !important;
 	font-weight: 700 !important;
-	color: #1e293b !important;
-	margin: 0 0 4px 0 !important;
+	color: white !important;
+	margin: 0 0 15px 0 !important;
 }
 
 body.custom-themes-active.ct-desk .ct-desk-welcome p {
-	font-size: 15px !important;
-	color: #64748b !important;
+	font-size: 18px !important;
+	color: #b5b5b6 !important;
 	margin: 0 0 32px 0 !important;
+	font-weight: 400 !important;
 }
 
 /* Quick action cards */

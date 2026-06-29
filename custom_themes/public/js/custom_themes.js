@@ -773,18 +773,13 @@
 			} catch (e) { /* ignore */ }
 
 			// Shortcuts
-			var shortcuts_html = '<div class="ct-desk-shortcuts"><h3>Quick Actions</h3><div class="ct-desk-shortcut-grid">'
-				+ '<div class="ct-desk-shortcut-card" onclick="frappe.new_doc()"><span class="ct-desk-shortcut-icon">\u{1F4C4}</span><span class="ct-desk-shortcut-label">New Document</span></div>'
-				+ '<div class="ct-desk-shortcut-card" onclick="frappe.searchdialog &amp;&amp; frappe.searchdialog.show()"><span class="ct-desk-shortcut-icon">\u{1F50D}</span><span class="ct-desk-shortcut-label">Search</span></div>'
-				+ '<div class="ct-desk-shortcut-card" onclick="frappe.set_route(\'Form\', \'Custom Theme Settings\')"><span class="ct-desk-shortcut-icon">⚙️</span><span class="ct-desk-shortcut-label">Settings</span></div>'
-				+ '</div></div>';
-
+		
 			var panel = document.createElement("div");
 			panel.className = "ct-desk-main-panel";
 			panel.innerHTML = '<div class="ct-desk-welcome">'
 				+ '<h2>' + greeting + ', ' + frappe.utils.escape_html(first_name) + '!</h2>'
 				+ '<p>Welcome to your workspace</p></div>'
-				+ shortcuts_html + recent_html;
+				+ recent_html
 			desk_container.appendChild(panel);
 		}
 
@@ -1228,17 +1223,10 @@
 				recent_html += '</ul></div>';
 			}
 		} catch (e) { /* ignore */ }
-
-		var shortcuts_html = '<div class="ct-desk-shortcuts"><h3>Quick Actions</h3><div class="ct-desk-shortcut-grid">'
-			+ '<div class="ct-desk-shortcut-card" onclick="frappe.new_doc()"><span class="ct-desk-shortcut-icon">\u{1F4C4}</span><span class="ct-desk-shortcut-label">New Document</span></div>'
-			+ '<div class="ct-desk-shortcut-card" onclick="frappe.searchdialog &amp;&amp; frappe.searchdialog.show()"><span class="ct-desk-shortcut-icon">\u{1F50D}</span><span class="ct-desk-shortcut-label">Search</span></div>'
-			+ '<div class="ct-desk-shortcut-card" onclick="frappe.set_route(\'Form\', \'Custom Theme Settings\')"><span class="ct-desk-shortcut-icon">⚙️</span><span class="ct-desk-shortcut-label">Settings</span></div>'
-			+ '</div></div>';
-
 		main_panel.innerHTML = '<div class="ct-desk-welcome">'
 			+ '<h2>' + greeting + ', ' + frappe.utils.escape_html(first_name) + '!</h2>'
 			+ '<p>Welcome to your workspace</p></div>'
-			+ shortcuts_html + recent_html;
+			+ recent_html;
 	}
 
 	function schedule_icon_scan() {
