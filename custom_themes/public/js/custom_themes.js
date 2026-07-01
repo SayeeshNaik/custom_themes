@@ -732,54 +732,163 @@
 
 	var _ct_desk_folder_handler_installed = false;
 
+	/* ── Shared Welcome Dashboard Builder ── */
+	function build_welcome_html() {
+		var user_full = (typeof frappe !== "undefined" && frappe.session)
+			? (frappe.session.user_fullname || frappe.session.user || "User")
+			: "User";
+
+		return ''
+		/* ── Scoped CSS ── */
+		+ '<style>'
+		+ '.ct-wel { position:relative; width:100%; min-height:calc(100vh - 52px);'
+		+ '  display:flex; flex-direction:column; justify-content:center; align-items:center;'
+		+ '  text-align:center; padding:50px 32px 60px; box-sizing:border-box; overflow:hidden; }'
+
+		/* animated gradient bg */
+		+ '.ct-wel::before { content:""; position:absolute; inset:0; z-index:0; border-radius: 20px;'
+		+ '  background:linear-gradient(-45deg, #546474, #1a314e, #203048, #41566a, #11253e, #232c3a, #172644, #152b47, #1e2d42);'
+		+ '  background-size:800% 800%; animation:ctWelBg 18s ease infinite; }'
+		+ '@keyframes ctWelBg { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }'
+
+		/* floating orbs */
+		+ '.ct-wel::after { content:""; position:absolute; width:420px; height:420px;'
+		+ '  background:radial-gradient(circle,rgba(59,130,246,0.18) 0%,transparent 70%);'
+		+ '  border-radius:50%; top:-80px; right:-100px; z-index:0; animation:ctOrb1 8s ease-in-out infinite alternate; }'
+		+ '@keyframes ctOrb1 { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(-60px,80px) scale(1.15)} }'
+
+		+ '.ct-wel-orb2 { position:absolute; width:300px; height:300px;'
+		+ '  background:radial-gradient(circle,rgba(147,197,253,0.15) 0%,transparent 70%);'
+		+ '  border-radius:50%; bottom:-60px; left:-80px; z-index:0; animation:ctOrb2 10s ease-in-out infinite alternate; }'
+		+ '@keyframes ctOrb2 { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(50px,-60px) scale(1.2)} }'
+
+		/* content layer */
+		+ '.ct-wel-inner { position:relative; z-index:1; max-width:900px; width:100%; }'
+
+		/* greeting */
+		+ '.ct-wel-greeting { font-size:14px; font-weight:600; text-transform:uppercase;'
+		+ '  letter-spacing:0.12em; color:rgba(255,255,255,0.7); margin-bottom:8px;'
+		+ '  animation:ctFadeUp 0.6s ease both; }'
+
+		+ '.ct-wel-name { font-size:38px; font-weight:800; color:#ffffff; margin:0 0 6px;'
+		+ '  text-shadow:0 2px 20px rgba(15,36,64,0.3);'
+		+ '  animation:ctFadeUp 0.6s 0.1s ease both; }'
+
+		+ '.ct-wel-tagline { font-size:16px; color:rgba(255,255,255,0.8); margin:0 0 44px; font-weight:400;'
+		+ '  animation:ctFadeUp 0.6s 0.2s ease both; }'
+
+		+ '@keyframes ctFadeUp { 0%{opacity:0;transform:translateY(20px)} 100%{opacity:1;transform:translateY(0)} }'
+
+		/* service cards */
+		+ '.ct-wel-services { display:flex; gap:20px; justify-content:center; flex-wrap:wrap;'
+		+ '  margin-bottom:44px; }'
+
+		+ '.ct-wel-svc { background:rgba(255,255,255,0.12); backdrop-filter:blur(16px);'
+		+ '  border:1px solid rgba(255,255,255,0.18); border-radius:18px;'
+		+ '  padding:30px 28px; min-width:200px; max-width:240px; flex:1;'
+		+ '  text-align:center; cursor:default;'
+		+ '  transition:transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;'
+		+ '  animation:ctCardIn 0.5s ease both; }'
+		+ '.ct-wel-svc:nth-child(1){animation-delay:0.3s}'
+		+ '.ct-wel-svc:nth-child(2){animation-delay:0.45s}'
+		+ '.ct-wel-svc:nth-child(3){animation-delay:0.6s}'
+		+ '.ct-wel-svc:nth-child(4){animation-delay:0.75s}'
+
+		+ '@keyframes ctCardIn { 0%{opacity:0;transform:translateY(30px) scale(0.95)}'
+		+ '  100%{opacity:1;transform:translateY(0) scale(1)} }'
+
+		+ '.ct-wel-svc:hover { transform:translateY(-6px);'
+		+ '  background:rgba(255,255,255,0.22);'
+		+ '  box-shadow:0 16px 48px rgba(15,36,64,0.25); }'
+
+		+ '.ct-wel-svc-icon { width:52px; height:52px; margin:0 auto 14px;'
+		+ '  background:linear-gradient(135deg,rgba(255,255,255,0.25),rgba(255,255,255,0.08));'
+		+ '  border-radius:14px; display:flex; align-items:center; justify-content:center;'
+		+ '  font-size:24px; box-shadow:0 4px 12px rgba(0,0,0,0.08); }'
+
+		+ '.ct-wel-svc-title { font-size:15px; font-weight:700; color:#ffffff;'
+		+ '  margin-bottom:6px; letter-spacing:0.01em; }'
+
+		+ '.ct-wel-svc-desc { font-size:12.5px; color:rgba(255,255,255,0.7); line-height:1.5; }'
+
+		/* visit button */
+		+ '.ct-wel-visit { display:inline-flex; align-items:center; gap:10px;'
+		+ '  padding:15px 44px; border-radius:50px; font-size:15px; font-weight:700;'
+		+ '  text-decoration:none; letter-spacing:0.02em;'
+		+ '  color:#0f2440; background:rgba(255,255,255,0.92);'
+		+ '  box-shadow:0 4px 24px rgba(15,36,64,0.15);'
+		+ '  transition:all 0.3s ease;'
+		+ '  animation:ctFadeUp 0.6s 0.9s ease both; }'
+
+		+ '.ct-wel-visit:hover { background:#ffffff; color:#1e3a5f;'
+		+ '  transform:translateY(-3px) scale(1.03);'
+		+ '  box-shadow:0 12px 36px rgba(15,36,64,0.28); }'
+
+		+ '.ct-wel-visit-arrow { display:inline-block; transition:transform 0.3s ease; }'
+		+ '.ct-wel-visit:hover .ct-wel-visit-arrow { transform:translate(3px,-3px); }'
+
+		/* pulse dot on cards */
+		+ '.ct-wel-pulse { width:8px; height:8px; border-radius:50%;'
+		+ '  background:#34d399; display:inline-block; margin-right:6px;'
+		+ '  animation:ctPulse 2s ease-in-out infinite; }'
+		+ '@keyframes ctPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }'
+
+		+ '</style>'
+
+		/* ── HTML ── */
+		+ '<div class="ct-wel">'
+		+ '  <div class="ct-wel-orb2"></div>'
+		+ '  <div class="ct-wel-inner">'
+
+		+ '    <div class="ct-wel-greeting">Welcome back</div>'
+		+ '    <h1 class="ct-wel-name">' + frappe.utils.escape_html(user_full) + '</h1>'
+		+ '    <p class="ct-wel-tagline">Empowering your business with smart digital solutions</p>'
+
+		+ '    <div class="ct-wel-services">'
+
+		+ '      <div class="ct-wel-svc">'
+		+ '        <div class="ct-wel-svc-icon">\u{1F680}</div>'
+		+ '        <div class="ct-wel-svc-title"><span class="ct-wel-pulse"></span>ERP Solutions</div>'
+		+ '        <div class="ct-wel-svc-desc">End-to-end business automation with custom workflows & integrations</div>'
+		+ '      </div>'
+
+		+ '      <div class="ct-wel-svc">'
+		+ '        <div class="ct-wel-svc-icon">\u{2601}️</div>'
+		+ '        <div class="ct-wel-svc-title"><span class="ct-wel-pulse"></span>Cloud Services</div>'
+		+ '        <div class="ct-wel-svc-desc">Scalable cloud hosting, migration & infrastructure management</div>'
+		+ '      </div>'
+
+		+ '      <div class="ct-wel-svc">'
+		+ '        <div class="ct-wel-svc-icon">\u{1F4CA}</div>'
+		+ '        <div class="ct-wel-svc-title"><span class="ct-wel-pulse"></span>Data Analytics</div>'
+		+ '        <div class="ct-wel-svc-desc">Real-time dashboards, reports & business intelligence insights</div>'
+		+ '      </div>'
+
+		+ '      <div class="ct-wel-svc">'
+		+ '        <div class="ct-wel-svc-icon">\u{1F6E1}️</div>'
+		+ '        <div class="ct-wel-svc-title"><span class="ct-wel-pulse"></span>IT Consulting</div>'
+		+ '        <div class="ct-wel-svc-desc">Strategic technology consulting & digital transformation advisory</div>'
+		+ '      </div>'
+
+		+ '    </div>'
+
+		+ '    <a class="ct-wel-visit" href="https://www.sieplinnovations.com/" target="_blank">'
+		+ '      Visit Website'
+		+ '    </a>'
+
+		+ '  </div>'
+		+ '</div>';
+	}
+
 	function inject_desk_welcome_panel() {
 		var desk_container = document.querySelector(".desktop-container");
 		if (!desk_container) return;
 
 		// Inject main content panel if missing
 		if (!desk_container.querySelector(".ct-desk-main-panel")) {
-			var user_full = (typeof frappe !== "undefined" && frappe.session)
-				? (frappe.session.user_fullname || frappe.session.user || "User")
-				: "User";
-			var first_name = user_full.split(" ")[0];
-			var hour = new Date().getHours();
-			var greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-
-			// Recent items
-			var recent_html = "";
-			try {
-				var recent_routes = (frappe.boot.user && frappe.boot.user.recent) || [];
-				var raw = typeof recent_routes === "string" ? JSON.parse(recent_routes) : recent_routes;
-				var parsed = [];
-				if (Array.isArray(raw)) {
-					for (var i = 0; i < Math.min(raw.length, 8); i++) {
-						var item = raw[i];
-						if (Array.isArray(item) && item.length >= 2) {
-							parsed.push({ doctype: item[0], name: item[1] });
-						}
-					}
-				}
-				if (parsed.length) {
-					recent_html = '<div class="ct-desk-recent"><h3>Recent Items</h3><ul>';
-					parsed.forEach(function (r) {
-						var href = "/app/" + frappe.router.slug(r.doctype) + "/" + encodeURIComponent(r.name);
-						recent_html += '<li><a href="' + href + '">'
-							+ '<span class="ct-desk-recent-type">' + frappe.utils.escape_html(r.doctype) + '</span>'
-							+ '<span class="ct-desk-recent-name">' + frappe.utils.escape_html(r.name) + '</span>'
-							+ '</a></li>';
-					});
-					recent_html += '</ul></div>';
-				}
-			} catch (e) { /* ignore */ }
-
-			// Shortcuts
-		
 			var panel = document.createElement("div");
 			panel.className = "ct-desk-main-panel";
-			panel.innerHTML = '<div class="ct-desk-welcome">'
-				+ '<h2>' + greeting + ', ' + frappe.utils.escape_html(first_name) + '!</h2>'
-				+ '<p>Welcome to your workspace</p></div>'
-				+ recent_html
+			panel.innerHTML = build_welcome_html();
 			desk_container.appendChild(panel);
 		}
 

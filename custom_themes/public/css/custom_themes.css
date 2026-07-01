@@ -863,7 +863,7 @@ body.custom-themes-active.ct-desk .ct-desk-main-panel {
 	flex: 1 !important;
 	background: linear-gradient(159deg, #122e53 0%, #ced4db 150%) !important;
 	min-height: calc(100vh - 52px) !important;
-	padding: 40px 48px !important;
+	padding: 20px 20px !important;
 	overflow-y: auto !important;
 }
 
