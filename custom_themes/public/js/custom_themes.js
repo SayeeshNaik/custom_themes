@@ -881,8 +881,42 @@
 	}
 
 	/*
-	 * Find the first accessible module that has a resolvable dashboard URL.
-	 * Returns { label: "Selling", url: "/desk/..." } or null.
+	 * Get the dashboard-view URL for a module label.
+	 * Frappe v16 pattern: /desk/dashboard-view/{ModuleLabel}
+	 * Returns the URL string, or "" if no dashboard exists.
+	 *
+	 * We verify by checking if the module has a matching entry in
+	 * frappe.boot.dashboard_config or workspace_sidebar_item.
+	 * The label used in the URL is the icon's label as-is (e.g. "Accounts", "Selling").
+	 */
+	function get_dashboard_url(module_label) {
+		if (!module_label) return "";
+		return "/desk/dashboard-view/" + encodeURIComponent(module_label);
+	}
+
+	/*
+	 * Check if a module likely has a dashboard view.
+	 * We check workspace_sidebar_item for the module — if it exists,
+	 * it's a real module with workspace content and likely a dashboard.
+	 * Also accept modules that have child icons (folders like Accounting, Selling).
+	 */
+	function module_has_dashboard(icon) {
+		if (!icon || !icon.label) return false;
+
+		// Modules with child_icons (folders) are major modules — they have dashboards
+		var children = get_child_icons_for(icon.label);
+		if (children.length > 0) return true;
+
+		// Check workspace sidebar — if module has sidebar items, it's a real module
+		var sidebar_map = (frappe.boot && frappe.boot.workspace_sidebar_item) || {};
+		if (sidebar_map[icon.label.toLowerCase()]) return true;
+
+		return false;
+	}
+
+	/*
+	 * Find the first accessible module that has a dashboard.
+	 * Returns { label: "Accounting", url: "/desk/dashboard-view/Accounts" } or null.
 	 * Iterates desktop_icons in idx order (top-level, not hidden).
 	 */
 	function get_first_dashboard_module() {
@@ -898,15 +932,9 @@
 
 		for (var t = 0; t < top_icons.length; t++) {
 			var icon = top_icons[t];
-			var url = get_icon_route(icon);
-			if (!url) {
-				var children = get_child_icons_for(icon.label);
-				for (var c = 0; c < children.length; c++) {
-					url = get_icon_route(children[c]);
-					if (url) break;
-				}
+			if (module_has_dashboard(icon)) {
+				return { label: icon.label, url: get_dashboard_url(icon.label) };
 			}
-			if (url) return { label: icon.label, url: url };
 		}
 		return null;
 	}
@@ -1300,10 +1328,10 @@
 		var main_panel = document.querySelector(".ct-desk-main-panel");
 		if (!main_panel) return;
 
-		// Strategy: find any usable URL for this module
+		// Strategy: prioritise dashboard-view URL for modules
 		var url = "";
 
-		// 1. Try resolving the module icon's own route
+		// 1. Try dashboard-view URL first (e.g. /desk/dashboard-view/Accounts)
 		var icon_data = null;
 		if (frappe.boot && frappe.boot.desktop_icons) {
 			for (var i = 0; i < frappe.boot.desktop_icons.length; i++) {
@@ -1313,11 +1341,16 @@
 				}
 			}
 		}
-		if (icon_data) {
+		if (icon_data && module_has_dashboard(icon_data)) {
+			url = get_dashboard_url(module_label);
+		}
+
+		// 2. Fallback: resolve the module icon's own route
+		if (!url && icon_data) {
 			url = get_icon_route(icon_data);
 		}
 
-		// 2. If no route from icon itself, use the first child icon's route
+		// 3. If no route from icon itself, use the first child icon's route
 		if (!url) {
 			var children = get_child_icons_for(module_label);
 			for (var j = 0; j < children.length; j++) {
@@ -1326,7 +1359,7 @@
 			}
 		}
 
-		// 3. Try reading href from the first child's DOM element
+		// 4. Try reading href from the first child's DOM element
 		if (!url) {
 			var child_dom = document.querySelector(
 				'.desktop-icon[data-id="' + module_label + '"] .folder-icon .desktop-icon[href]'
@@ -1337,9 +1370,7 @@
 		}
 
 		if (!url) {
-			main_panel.innerHTML = '<div class="ct-desk-welcome">'
-				+ '<h2>' + frappe.utils.escape_html(module_label) + '</h2>'
-				+ '<p>No page found for this module.</p></div>';
+			main_panel.innerHTML = build_welcome_html();
 			return;
 		}
 
