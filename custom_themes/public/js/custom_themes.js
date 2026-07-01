@@ -880,6 +880,37 @@
 		+ '</div>';
 	}
 
+	/*
+	 * Find the first accessible module that has a resolvable dashboard URL.
+	 * Returns { label: "Selling", url: "/desk/..." } or null.
+	 * Iterates desktop_icons in idx order (top-level, not hidden).
+	 */
+	function get_first_dashboard_module() {
+		if (!frappe.boot || !frappe.boot.desktop_icons) return null;
+
+		var top_icons = [];
+		for (var i = 0; i < frappe.boot.desktop_icons.length; i++) {
+			var ic = frappe.boot.desktop_icons[i];
+			if (ic.hidden || ic.parent_icon) continue;
+			top_icons.push(ic);
+		}
+		top_icons.sort(function (a, b) { return (a.idx || 0) - (b.idx || 0); });
+
+		for (var t = 0; t < top_icons.length; t++) {
+			var icon = top_icons[t];
+			var url = get_icon_route(icon);
+			if (!url) {
+				var children = get_child_icons_for(icon.label);
+				for (var c = 0; c < children.length; c++) {
+					url = get_icon_route(children[c]);
+					if (url) break;
+				}
+			}
+			if (url) return { label: icon.label, url: url };
+		}
+		return null;
+	}
+
 	function inject_desk_welcome_panel() {
 		var desk_container = document.querySelector(".desktop-container");
 		if (!desk_container) return;
@@ -888,8 +919,63 @@
 		if (!desk_container.querySelector(".ct-desk-main-panel")) {
 			var panel = document.createElement("div");
 			panel.className = "ct-desk-main-panel";
-			panel.innerHTML = build_welcome_html();
+
+			// Auto-load the user's first accessible module dashboard
+			var first_mod = get_first_dashboard_module();
+			if (first_mod) {
+				panel.innerHTML = '<div class="ct-desk-workspace-loading">'
+					+ '<div class="ct-desk-workspace-spinner"></div>'
+					+ '<p>Loading ' + frappe.utils.escape_html(first_mod.label) + '...</p></div>';
+			} else {
+				panel.innerHTML = build_welcome_html();
+			}
+
 			desk_container.appendChild(panel);
+
+			// If module found, load its dashboard in iframe
+			if (first_mod) {
+				// Highlight sidebar icon
+				var icon_el = desk_container.querySelector(
+					'.desktop-icon[data-id="' + first_mod.label + '"]'
+				);
+				if (icon_el) icon_el.classList.add("ct-desk-active");
+
+				// Show sub-sidebar if it's a folder
+				var children = get_child_icons_for(first_mod.label);
+				if (children.length) {
+					show_sub_sidebar(first_mod.label, children);
+				}
+
+				// Load iframe
+				var iframe = document.createElement("iframe");
+				iframe.className = "ct-desk-workspace-iframe";
+				iframe.setAttribute("frameborder", "0");
+				iframe.setAttribute("src", first_mod.url);
+				iframe.setAttribute("title", first_mod.label);
+
+				iframe.onload = function () {
+					try {
+						var idoc = iframe.contentDocument || iframe.contentWindow.document;
+						var style = idoc.createElement("style");
+						style.textContent = ''
+							+ 'header.navbar, .desk-sidebar, '
+							+ '.sidebar-menu, '
+							+ '#page-desktop, .desktop-wrapper, '
+							+ 'footer, .desk-sidebar-toggle, '
+							+ '.workspace-sidebar-skeleton '
+							+ '{ display: none !important; }'
+							+ '.page-container { padding-top: 0 !important; }'
+							+ '.container { max-width: 100% !important; }'
+							+ 'body { background: #ffffff !important; overflow-x: hidden !important; }'
+							+ '.page-body { margin-top: 0 !important; }'
+							+ '.main-section { margin-top: 0 !important; }';
+						idoc.head.appendChild(style);
+					} catch (ex) { /* same-origin should work */ }
+				};
+
+				panel.innerHTML = '';
+				panel.appendChild(iframe);
+			}
 		}
 
 		// Install folder-click interceptor (once)
