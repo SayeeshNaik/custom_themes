@@ -881,136 +881,177 @@
 	}
 
 	/*
-	 * Get the dashboard-view URL for a module label.
-	 * Frappe v16 pattern: /desk/dashboard-view/{ModuleLabel}
-	 * Returns the URL string, or "" if no dashboard exists.
+	 * Dashboard cache — populated once via API, then reused.
+	 * Maps icon labels to dashboard names: { "Accounting": "Accounts", "Selling": "Selling" }
+	 */
+	var _ct_dashboard_map = null; // null = not fetched yet
+	var _ct_dashboard_loading = false;
+
+	/*
+	 * Fetch all Dashboard records and build a map:
+	 *   icon_label → dashboard_name
 	 *
-	 * We verify by checking if the module has a matching entry in
-	 * frappe.boot.dashboard_config or workspace_sidebar_item.
-	 * The label used in the URL is the icon's label as-is (e.g. "Accounts", "Selling").
+	 * Matching strategy:
+	 *   1. Dashboard.module matches a Module Def name.
+	 *      module_app keys are Module Def names (e.g. "Accounts", "Selling").
+	 *      Desktop icon labels can differ (e.g. "Accounting" for module "Accounts").
+	 *   2. We also try: dashboard.name === icon.label (direct match).
+	 *   3. We build a module→icon_label reverse map from workspace_sidebar_item
+	 *      and module_app to cover label/module mismatches.
 	 */
-	function get_dashboard_url(module_label) {
-		if (!module_label) return "";
-		return "/desk/dashboard-view/" + encodeURIComponent(module_label);
+	function fetch_dashboard_map(callback) {
+		if (_ct_dashboard_map !== null) {
+			callback(_ct_dashboard_map);
+			return;
+		}
+		if (_ct_dashboard_loading) {
+			// Already in-flight, retry after short delay
+			setTimeout(function () { fetch_dashboard_map(callback); }, 200);
+			return;
+		}
+		_ct_dashboard_loading = true;
+
+		frappe.call({
+			method: "frappe.client.get_list",
+			args: {
+				doctype: "Dashboard",
+				fields: ["name", "module"],
+				limit_page_length: 0,
+			},
+			async: true,
+			callback: function (r) {
+				_ct_dashboard_loading = false;
+				var dashboards = (r && r.message) || [];
+				var map = {};
+
+				// Build reverse map: module_def_name → icon_label
+				// e.g. "Accounts" → "Accounting"
+				var module_to_icon = {};
+				if (frappe.boot && frappe.boot.desktop_icons) {
+					// From workspace_sidebar_item: icon labels are the keys
+					var sidebar_map = (frappe.boot && frappe.boot.workspace_sidebar_item) || {};
+
+					frappe.boot.desktop_icons.forEach(function (ic) {
+						if (ic.hidden || ic.parent_icon) return;
+						// Direct: label matches module name
+						module_to_icon[ic.label] = ic.label;
+
+						// Also check if any module_app key is related
+						// by checking sidebar items for the icon
+						var sb = sidebar_map[(ic.label || "").toLowerCase()];
+						if (sb && sb.module) {
+							module_to_icon[sb.module] = ic.label;
+						}
+					});
+				}
+
+				// Also add module_app keys → themselves (for direct matches like "Selling")
+				var mod_app = (frappe.boot && frappe.boot.module_app) || {};
+				for (var mod_name in mod_app) {
+					if (!module_to_icon[mod_name]) {
+						module_to_icon[mod_name] = mod_name;
+					}
+				}
+
+				// Now match dashboards to icon labels
+				dashboards.forEach(function (d) {
+					// Match by dashboard.module → icon label
+					if (d.module && module_to_icon[d.module]) {
+						map[module_to_icon[d.module]] = d.name;
+					}
+					// Also match by dashboard.name === icon label (direct)
+					if (module_to_icon[d.name]) {
+						map[module_to_icon[d.name]] = d.name;
+					}
+				});
+
+				_ct_dashboard_map = map;
+				callback(map);
+			},
+			error: function () {
+				_ct_dashboard_loading = false;
+				_ct_dashboard_map = {};
+				callback({});
+			},
+		});
 	}
 
 	/*
-	 * Check if a module likely has a dashboard view.
-	 * We check workspace_sidebar_item for the module — if it exists,
-	 * it's a real module with workspace content and likely a dashboard.
-	 * Also accept modules that have child icons (folders like Accounting, Selling).
+	 * Get dashboard URL for an icon label, using the cached map.
+	 * Returns "/desk/dashboard-view/{DashboardName}" or "".
 	 */
-	function module_has_dashboard(icon) {
-		if (!icon || !icon.label) return false;
-
-		// Modules with child_icons (folders) are major modules — they have dashboards
-		var children = get_child_icons_for(icon.label);
-		if (children.length > 0) return true;
-
-		// Check workspace sidebar — if module has sidebar items, it's a real module
-		var sidebar_map = (frappe.boot && frappe.boot.workspace_sidebar_item) || {};
-		if (sidebar_map[icon.label.toLowerCase()]) return true;
-
-		return false;
-	}
-
-	/*
-	 * Find the first accessible module that has a dashboard.
-	 * Returns { label: "Accounting", url: "/desk/dashboard-view/Accounts" } or null.
-	 * Iterates desktop_icons in idx order (top-level, not hidden).
-	 */
-	function get_first_dashboard_module() {
-		if (!frappe.boot || !frappe.boot.desktop_icons) return null;
-
-		var top_icons = [];
-		for (var i = 0; i < frappe.boot.desktop_icons.length; i++) {
-			var ic = frappe.boot.desktop_icons[i];
-			if (ic.hidden || ic.parent_icon) continue;
-			top_icons.push(ic);
-		}
-		top_icons.sort(function (a, b) { return (a.idx || 0) - (b.idx || 0); });
-
-		for (var t = 0; t < top_icons.length; t++) {
-			var icon = top_icons[t];
-			if (module_has_dashboard(icon)) {
-				return { label: icon.label, url: get_dashboard_url(icon.label) };
-			}
-		}
-		return null;
+	function get_dashboard_url_for(icon_label) {
+		if (!_ct_dashboard_map || !icon_label) return "";
+		var dash_name = _ct_dashboard_map[icon_label];
+		if (dash_name) return "/desk/dashboard-view/" + encodeURIComponent(dash_name);
+		return "";
 	}
 
 	function inject_desk_welcome_panel() {
 		var desk_container = document.querySelector(".desktop-container");
 		if (!desk_container) return;
 
-		// Inject main content panel if missing
-		if (!desk_container.querySelector(".ct-desk-main-panel")) {
-			var panel = document.createElement("div");
-			panel.className = "ct-desk-main-panel";
-
-			// Auto-load the user's first accessible module dashboard
-			var first_mod = get_first_dashboard_module();
-			if (first_mod) {
-				panel.innerHTML = '<div class="ct-desk-workspace-loading">'
-					+ '<div class="ct-desk-workspace-spinner"></div>'
-					+ '<p>Loading ' + frappe.utils.escape_html(first_mod.label) + '...</p></div>';
-			} else {
-				panel.innerHTML = build_welcome_html();
-			}
-
-			desk_container.appendChild(panel);
-
-			// If module found, load its dashboard in iframe
-			if (first_mod) {
-				// Highlight sidebar icon
-				var icon_el = desk_container.querySelector(
-					'.desktop-icon[data-id="' + first_mod.label + '"]'
-				);
-				if (icon_el) icon_el.classList.add("ct-desk-active");
-
-				// Show sub-sidebar if it's a folder
-				var children = get_child_icons_for(first_mod.label);
-				if (children.length) {
-					show_sub_sidebar(first_mod.label, children);
-				}
-
-				// Load iframe
-				var iframe = document.createElement("iframe");
-				iframe.className = "ct-desk-workspace-iframe";
-				iframe.setAttribute("frameborder", "0");
-				iframe.setAttribute("src", first_mod.url);
-				iframe.setAttribute("title", first_mod.label);
-
-				iframe.onload = function () {
-					try {
-						var idoc = iframe.contentDocument || iframe.contentWindow.document;
-						var style = idoc.createElement("style");
-						style.textContent = ''
-							+ 'header.navbar, .desk-sidebar, '
-							+ '.sidebar-menu, '
-							+ '#page-desktop, .desktop-wrapper, '
-							+ 'footer, .desk-sidebar-toggle, '
-							+ '.workspace-sidebar-skeleton '
-							+ '{ display: none !important; }'
-							+ '.page-container { padding-top: 0 !important; }'
-							+ '.container { max-width: 100% !important; }'
-							+ 'body { background: #ffffff !important; overflow-x: hidden !important; }'
-							+ '.page-body { margin-top: 0 !important; }'
-							+ '.main-section { margin-top: 0 !important; }';
-						idoc.head.appendChild(style);
-					} catch (ex) { /* same-origin should work */ }
-				};
-
-				panel.innerHTML = '';
-				panel.appendChild(iframe);
-			}
-		}
-
 		// Install folder-click interceptor (once)
 		if (!_ct_desk_folder_handler_installed) {
 			_ct_desk_folder_handler_installed = true;
 			install_folder_click_handler();
 		}
+
+		// Inject main content panel if missing
+		if (desk_container.querySelector(".ct-desk-main-panel")) return;
+
+		var panel = document.createElement("div");
+		panel.className = "ct-desk-main-panel";
+
+		// Show loading spinner while we fetch dashboards
+		panel.innerHTML = '<div class="ct-desk-workspace-loading">'
+			+ '<div class="ct-desk-workspace-spinner"></div>'
+			+ '<p>Loading dashboard...</p></div>';
+		desk_container.appendChild(panel);
+
+		// Fetch dashboard list, then auto-load the first matching module
+		fetch_dashboard_map(function (dash_map) {
+			// Find user's first module (by idx) that has a dashboard
+			var top_icons = [];
+			if (frappe.boot && frappe.boot.desktop_icons) {
+				for (var i = 0; i < frappe.boot.desktop_icons.length; i++) {
+					var ic = frappe.boot.desktop_icons[i];
+					if (ic.hidden || ic.parent_icon) continue;
+					top_icons.push(ic);
+				}
+			}
+			top_icons.sort(function (a, b) { return (a.idx || 0) - (b.idx || 0); });
+
+			var match = null;
+			for (var t = 0; t < top_icons.length; t++) {
+				var dash_url = get_dashboard_url_for(top_icons[t].label);
+				if (dash_url) {
+					match = { label: top_icons[t].label, url: dash_url };
+					break;
+				}
+			}
+
+			if (!match) {
+				// No dashboard found — show welcome page
+				panel.innerHTML = build_welcome_html();
+				return;
+			}
+
+			// Highlight sidebar icon
+			var icon_el = desk_container.querySelector(
+				'.desktop-icon[data-id="' + match.label + '"]'
+			);
+			if (icon_el) icon_el.classList.add("ct-desk-active");
+
+			// Show sub-sidebar if it's a folder
+			var children = get_child_icons_for(match.label);
+			if (children.length) {
+				show_sub_sidebar(match.label, children);
+			}
+
+			// Load dashboard in iframe
+			load_url_in_main_panel(match.url, match.label);
+		});
 	}
 
 	function remove_desk_welcome_panel() {
@@ -1207,7 +1248,7 @@
 
 		sub.innerHTML = header_html + list_html;
 
-		// Click handler: open in new tab + keep active state
+		// Click handler: load in iframe + keep active state
 		sub.querySelectorAll(".ct-sub-link").forEach(function (a) {
 			a.addEventListener("click", function (ev) {
 				ev.preventDefault();
@@ -1220,18 +1261,24 @@
 
 				var route = a.getAttribute("data-route");
 				var label = a.getAttribute("data-label");
-				if (route) {
-					window.open(route, "_blank");
-				} else {
+				if (!route) {
 					// Fallback: try reading href from Frappe's DOM icon
 					var dom_icon = document.querySelector('.desktop-icon[data-id="' + label + '"]');
 					var href = dom_icon ? dom_icon.getAttribute("href") : null;
 					if (href && href !== "#") {
-						window.open(href, "_blank");
+						route = href;
 					} else {
-						window.open("/app/" + frappe.router.slug(label), "_blank");
+						route = "/app/" + frappe.router.slug(label);
 					}
 				}
+
+				// Load in main panel iframe
+				load_url_in_main_panel(route, label);
+
+				// // Open in new tab (commented — uncomment if needed)
+				// if (route) {
+				// 	window.open(route, "_blank");
+				// }
 			});
 		});
 
@@ -1323,51 +1370,10 @@
 		}, true);
 	}
 
-	/* ── Load module content into the main panel via iframe ── */
-	function load_workspace_in_main_panel(module_label) {
+	/* ── Shared: load any URL into the main panel iframe ── */
+	function load_url_in_main_panel(url, title) {
 		var main_panel = document.querySelector(".ct-desk-main-panel");
 		if (!main_panel) return;
-
-		// Strategy: prioritise dashboard-view URL for modules
-		var url = "";
-
-		// 1. Try dashboard-view URL first (e.g. /desk/dashboard-view/Accounts)
-		var icon_data = null;
-		if (frappe.boot && frappe.boot.desktop_icons) {
-			for (var i = 0; i < frappe.boot.desktop_icons.length; i++) {
-				if (frappe.boot.desktop_icons[i].label === module_label) {
-					icon_data = frappe.boot.desktop_icons[i];
-					break;
-				}
-			}
-		}
-		if (icon_data && module_has_dashboard(icon_data)) {
-			url = get_dashboard_url(module_label);
-		}
-
-		// 2. Fallback: resolve the module icon's own route
-		if (!url && icon_data) {
-			url = get_icon_route(icon_data);
-		}
-
-		// 3. If no route from icon itself, use the first child icon's route
-		if (!url) {
-			var children = get_child_icons_for(module_label);
-			for (var j = 0; j < children.length; j++) {
-				url = get_icon_route(children[j]);
-				if (url) break;
-			}
-		}
-
-		// 4. Try reading href from the first child's DOM element
-		if (!url) {
-			var child_dom = document.querySelector(
-				'.desktop-icon[data-id="' + module_label + '"] .folder-icon .desktop-icon[href]'
-			);
-			if (child_dom) {
-				url = child_dom.getAttribute("href");
-			}
-		}
 
 		if (!url) {
 			main_panel.innerHTML = build_welcome_html();
@@ -1377,19 +1383,17 @@
 		// Show loading spinner
 		main_panel.innerHTML = '<div class="ct-desk-workspace-loading">'
 			+ '<div class="ct-desk-workspace-spinner"></div>'
-			+ '<p>Loading ' + frappe.utils.escape_html(module_label) + '...</p></div>';
+			+ '<p>Loading ' + frappe.utils.escape_html(title || "") + '...</p></div>';
 
 		// Load in iframe
 		var iframe = document.createElement("iframe");
 		iframe.className = "ct-desk-workspace-iframe";
 		iframe.setAttribute("frameborder", "0");
 		iframe.setAttribute("src", url);
-		iframe.setAttribute("title", module_label);
+		iframe.setAttribute("title", title || "");
 
 		iframe.onload = function () {
 			try {
-				// Only hide the site-level navbar and sidebar
-				// KEEP the page-head toolbar (Save, Amend, Menu, etc.)
 				var idoc = iframe.contentDocument || iframe.contentWindow.document;
 				var style = idoc.createElement("style");
 				style.textContent = ''
@@ -1412,47 +1416,60 @@
 		main_panel.appendChild(iframe);
 	}
 
+	/* ── Load module content into the main panel via iframe ── */
+	function load_workspace_in_main_panel(module_label) {
+		var main_panel = document.querySelector(".ct-desk-main-panel");
+		if (!main_panel) return;
+
+		// 1. Try dashboard-view URL first (fetched from API, correct name)
+		var dash_url = get_dashboard_url_for(module_label);
+		if (dash_url) {
+			load_url_in_main_panel(dash_url, module_label);
+			return;
+		}
+
+		// 2. Fallback: resolve the module icon's own route
+		var url = "";
+		var icon_data = null;
+		if (frappe.boot && frappe.boot.desktop_icons) {
+			for (var i = 0; i < frappe.boot.desktop_icons.length; i++) {
+				if (frappe.boot.desktop_icons[i].label === module_label) {
+					icon_data = frappe.boot.desktop_icons[i];
+					break;
+				}
+			}
+		}
+		if (icon_data) {
+			url = get_icon_route(icon_data);
+		}
+
+		// 3. If no route from icon itself, use the first child icon's route
+		if (!url) {
+			var children = get_child_icons_for(module_label);
+			for (var j = 0; j < children.length; j++) {
+				url = get_icon_route(children[j]);
+				if (url) break;
+			}
+		}
+
+		// 4. Try reading href from the first child's DOM element
+		if (!url) {
+			var child_dom = document.querySelector(
+				'.desktop-icon[data-id="' + module_label + '"] .folder-icon .desktop-icon[href]'
+			);
+			if (child_dom) {
+				url = child_dom.getAttribute("href");
+			}
+		}
+
+		load_url_in_main_panel(url, module_label);
+	}
+
 	/* Reset main panel to welcome screen */
 	function reset_main_panel_to_welcome() {
 		var main_panel = document.querySelector(".ct-desk-main-panel");
 		if (!main_panel) return;
-
-		var user_full = (typeof frappe !== "undefined" && frappe.session)
-			? (frappe.session.user_fullname || frappe.session.user || "User")
-			: "User";
-		var first_name = user_full.split(" ")[0];
-		var hour = new Date().getHours();
-		var greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-
-		var recent_html = "";
-		try {
-			var recent_routes = (frappe.boot.user && frappe.boot.user.recent) || [];
-			var raw = typeof recent_routes === "string" ? JSON.parse(recent_routes) : recent_routes;
-			var parsed = [];
-			if (Array.isArray(raw)) {
-				for (var i = 0; i < Math.min(raw.length, 8); i++) {
-					var item = raw[i];
-					if (Array.isArray(item) && item.length >= 2) {
-						parsed.push({ doctype: item[0], name: item[1] });
-					}
-				}
-			}
-			if (parsed.length) {
-				recent_html = '<div class="ct-desk-recent"><h3>Recent Items</h3><ul>';
-				parsed.forEach(function (r) {
-					var href = "/app/" + frappe.router.slug(r.doctype) + "/" + encodeURIComponent(r.name);
-					recent_html += '<li><a href="' + href + '" target="_blank">'
-						+ '<span class="ct-desk-recent-type">' + frappe.utils.escape_html(r.doctype) + '</span>'
-						+ '<span class="ct-desk-recent-name">' + frappe.utils.escape_html(r.name) + '</span>'
-						+ '</a></li>';
-				});
-				recent_html += '</ul></div>';
-			}
-		} catch (e) { /* ignore */ }
-		main_panel.innerHTML = '<div class="ct-desk-welcome">'
-			+ '<h2>' + greeting + ', ' + frappe.utils.escape_html(first_name) + '!</h2>'
-			+ '<p>Welcome to your workspace</p></div>'
-			+ recent_html;
+		main_panel.innerHTML = build_welcome_html();
 	}
 
 	function schedule_icon_scan() {
